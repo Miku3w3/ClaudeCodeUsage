@@ -3,12 +3,10 @@
   "statusBar.thinking": "تفكير",
   "statusBar.cumulative": "الإجمالي",
   "statusBar.noData": "لم يتم اكتشاف جلسة نشطة",
-
   "command.showLastCost": "إظهار تكلفة آخر رسالة",
   "command.noMessages": "لا توجد رسائل بعد.",
   "command.lastMsg": "آخر رسالة",
   "command.thinkingTime": "وقت التفكير",
-
   "panel.title": "مراقب الرموز",
   "panel.noSession": "لا توجد جلسة نشطة",
   "panel.noSessionHint": "ابدأ محادثة Claude Code لعرض استخدام الرموز",
@@ -28,10 +26,27 @@
   "panel.output": "الإخراج",
   "panel.cost": "التكلفة",
   "panel.thinking": "تفكير",
-
   "tooltip.model": "النموذج",
   "tooltip.session": "الجلسة",
-
   "budget.warningTitle": "تحذير الميزانية",
-  "budget.warningBody": "تجاوزت التكلفة التراكمية {0}"
+  "budget.warningBody": "تجاوزت التكلفة التراكمية {0}",
+  "tooltip.lastMsg": "آخر رسالة",
+  "tooltip.totalInput": "الإدخال（الإجمالي）",
+  "tooltip.cacheHit": "إصابة الذاكرة",
+  "tooltip.cacheMiss": "فقدان الذاكرة",
+  "tooltip.output": "الإخراج",
+  "tooltip.cost": "التكلفة",
+  "tooltip.thinkTime": "وقت التفكير",
+  "tooltip.hitRate": "معدل الإصابة",
+  "tooltip.noMessages": "لا رسائل",
+  "tooltip.sessionTotal": "إجمالي الجلسة",
+  "tooltip.messages": "رسائل",
+  "rates.label": "{0} ≈ {1}",
+  "rates.justNow": "الآن",
+  "rates.minutesAgo": "قبل {0} دقيقة",
+  "rates.hoursAgo": "قبل {0} ساعة",
+  "rates.daysAgo": "قبل {0} يوم",
+  "rates.unknown": "غير معروف",
+  "rates.builtin": "بيانات مدمجة",
+  "panel.settings": "الإعدادات"
 }

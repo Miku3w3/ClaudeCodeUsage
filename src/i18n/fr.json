@@ -3,12 +3,10 @@
   "statusBar.thinking": "Réflexion",
   "statusBar.cumulative": "Total",
   "statusBar.noData": "Aucune session active détectée",
-
   "command.showLastCost": "Afficher le coût du dernier message",
   "command.noMessages": "Pas encore de messages.",
   "command.lastMsg": "Dernier message",
   "command.thinkingTime": "Temps de réflexion",
-
   "panel.title": "Moniteur de Tokens",
   "panel.noSession": "Aucune session active",
   "panel.noSessionHint": "Démarrez une conversation Claude Code pour voir l'utilisation des tokens",
@@ -28,10 +26,27 @@
   "panel.output": "Sortie",
   "panel.cost": "Coût",
   "panel.thinking": "Réflexion",
-
   "tooltip.model": "Modèle",
   "tooltip.session": "Session",
-
   "budget.warningTitle": "Alerte budgétaire",
-  "budget.warningBody": "Le coût cumulé a dépassé {0}"
+  "budget.warningBody": "Le coût cumulé a dépassé {0}",
+  "tooltip.lastMsg": "Dernier message",
+  "tooltip.totalInput": "Entrée (total)",
+  "tooltip.cacheHit": "Succès cache",
+  "tooltip.cacheMiss": "Échec cache",
+  "tooltip.output": "Sortie",
+  "tooltip.cost": "Coût",
+  "tooltip.thinkTime": "Temps réflexion",
+  "tooltip.hitRate": "Taux succès",
+  "tooltip.noMessages": "Aucun message",
+  "tooltip.sessionTotal": "Total session",
+  "tooltip.messages": "Messages",
+  "rates.label": "{0} ≈ {1}",
+  "rates.justNow": "À l'instant",
+  "rates.minutesAgo": "Il y a {0} min",
+  "rates.hoursAgo": "Il y a {0}h",
+  "rates.daysAgo": "Il y a {0}j",
+  "rates.unknown": "Inconnu",
+  "rates.builtin": "Intégré",
+  "panel.settings": "Paramètres"
 }

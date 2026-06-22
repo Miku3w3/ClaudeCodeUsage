@@ -3,12 +3,10 @@
   "statusBar.thinking": "思考",
   "statusBar.cumulative": "累計",
   "statusBar.noData": "未偵測到活躍會話",
-
   "command.showLastCost": "顯示上一條訊息費用",
   "command.noMessages": "暫無訊息。",
   "command.lastMsg": "上一條訊息",
   "command.thinkingTime": "思考時間",
-
   "panel.title": "Token 監控",
   "panel.noSession": "暫無活躍會話",
   "panel.noSessionHint": "啟動 Claude Code 對話後將自動顯示 token 用量",
@@ -28,10 +26,27 @@
   "panel.output": "輸出",
   "panel.cost": "費用",
   "panel.thinking": "思考",
-
   "tooltip.model": "模型",
   "tooltip.session": "會話",
-
   "budget.warningTitle": "費用警告",
-  "budget.warningBody": "累計費用已超過 {0}"
+  "budget.warningBody": "累計費用已超過 {0}",
+  "tooltip.lastMsg": "上一條訊息",
+  "tooltip.totalInput": "輸入（總）",
+  "tooltip.cacheHit": "快取命中",
+  "tooltip.cacheMiss": "快取未命中",
+  "tooltip.output": "輸出",
+  "tooltip.cost": "費用",
+  "tooltip.thinkTime": "思考時間",
+  "tooltip.hitRate": "快取命中率",
+  "tooltip.noMessages": "暫無訊息",
+  "tooltip.sessionTotal": "會話累計",
+  "tooltip.messages": "訊息數",
+  "rates.label": "{0} ≈ {1}",
+  "rates.justNow": "剛剛更新",
+  "rates.minutesAgo": "{0}分鐘前更新",
+  "rates.hoursAgo": "{0}小時前更新",
+  "rates.daysAgo": "{0}天前更新",
+  "rates.unknown": "匯率未知",
+  "rates.builtin": "內建資料",
+  "panel.settings": "設定"
 }

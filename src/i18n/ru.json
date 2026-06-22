@@ -3,12 +3,10 @@
   "statusBar.thinking": "Размышление",
   "statusBar.cumulative": "Всего",
   "statusBar.noData": "Активная сессия не обнаружена",
-
   "command.showLastCost": "Показать стоимость последнего сообщения",
   "command.noMessages": "Сообщений пока нет.",
   "command.lastMsg": "Последнее сообщение",
   "command.thinkingTime": "Время размышления",
-
   "panel.title": "Монитор Токенов",
   "panel.noSession": "Нет активной сессии",
   "panel.noSessionHint": "Начните разговор в Claude Code, чтобы увидеть использование токенов",
@@ -28,10 +26,27 @@
   "panel.output": "Вывод",
   "panel.cost": "Стоимость",
   "panel.thinking": "Размышление",
-
   "tooltip.model": "Модель",
   "tooltip.session": "Сессия",
-
   "budget.warningTitle": "Предупреждение о бюджете",
-  "budget.warningBody": "Накопленная стоимость превысила {0}"
+  "budget.warningBody": "Накопленная стоимость превысила {0}",
+  "tooltip.lastMsg": "Последнее сообщение",
+  "tooltip.totalInput": "Ввод（всего）",
+  "tooltip.cacheHit": "Попадание кэша",
+  "tooltip.cacheMiss": "Промах кэша",
+  "tooltip.output": "Вывод",
+  "tooltip.cost": "Стоимость",
+  "tooltip.thinkTime": "Время размышления",
+  "tooltip.hitRate": "Попадания кэша",
+  "tooltip.noMessages": "Нет сообщений",
+  "tooltip.sessionTotal": "Всего за сессию",
+  "tooltip.messages": "Сообщений",
+  "rates.label": "{0} ≈ {1}",
+  "rates.justNow": "Только что",
+  "rates.minutesAgo": "{0} мин. назад",
+  "rates.hoursAgo": "{0} ч. назад",
+  "rates.daysAgo": "{0} дн. назад",
+  "rates.unknown": "Неизвестно",
+  "rates.builtin": "Встроенные",
+  "panel.settings": "Настройки"
 }

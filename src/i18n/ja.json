@@ -3,12 +3,10 @@
   "statusBar.thinking": "思考",
   "statusBar.cumulative": "累計",
   "statusBar.noData": "アクティブなセッションがありません",
-
   "command.showLastCost": "最後のメッセージ費用を表示",
   "command.noMessages": "メッセージはまだありません。",
   "command.lastMsg": "最後のメッセージ",
   "command.thinkingTime": "思考時間",
-
   "panel.title": "Token モニター",
   "panel.noSession": "アクティブなセッションがありません",
   "panel.noSessionHint": "Claude Code 会話を開始すると token 使用量が表示されます",
@@ -28,10 +26,27 @@
   "panel.output": "出力",
   "panel.cost": "費用",
   "panel.thinking": "思考",
-
   "tooltip.model": "モデル",
   "tooltip.session": "セッション",
-
   "budget.warningTitle": "予算警告",
-  "budget.warningBody": "累計費用が {0} を超えました"
+  "budget.warningBody": "累計費用が {0} を超えました",
+  "tooltip.lastMsg": "最後のメッセージ",
+  "tooltip.totalInput": "入力（合計）",
+  "tooltip.cacheHit": "キャッシュヒット",
+  "tooltip.cacheMiss": "キャッシュミス",
+  "tooltip.output": "出力",
+  "tooltip.cost": "費用",
+  "tooltip.thinkTime": "思考時間",
+  "tooltip.hitRate": "キャッシュヒット率",
+  "tooltip.noMessages": "メッセージなし",
+  "tooltip.sessionTotal": "セッション累計",
+  "tooltip.messages": "メッセージ",
+  "rates.label": "{0} ≈ {1}",
+  "rates.justNow": "たった今",
+  "rates.minutesAgo": "{0}分前",
+  "rates.hoursAgo": "{0}時間前",
+  "rates.daysAgo": "{0}日前",
+  "rates.unknown": "不明",
+  "rates.builtin": "内蔵データ",
+  "panel.settings": "設定"
 }

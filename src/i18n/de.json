@@ -3,12 +3,10 @@
   "statusBar.thinking": "Denken",
   "statusBar.cumulative": "Gesamt",
   "statusBar.noData": "Keine aktive Sitzung erkannt",
-
   "command.showLastCost": "Letzte Nachricht Kosten anzeigen",
   "command.noMessages": "Noch keine Nachrichten.",
   "command.lastMsg": "Letzte Nachricht",
   "command.thinkingTime": "Denkzeit",
-
   "panel.title": "Token Monitor",
   "panel.noSession": "Keine aktive Sitzung",
   "panel.noSessionHint": "Starten Sie eine Claude Code Unterhaltung, um Token-Nutzung zu sehen",
@@ -28,10 +26,27 @@
   "panel.output": "Ausgabe",
   "panel.cost": "Kosten",
   "panel.thinking": "Denken",
-
   "tooltip.model": "Modell",
   "tooltip.session": "Sitzung",
-
   "budget.warningTitle": "Budget-Warnung",
-  "budget.warningBody": "Kumulierte Kosten haben {0} überschritten"
+  "budget.warningBody": "Kumulierte Kosten haben {0} überschritten",
+  "tooltip.lastMsg": "Letzte Nachricht",
+  "tooltip.totalInput": "Eingabe (gesamt)",
+  "tooltip.cacheHit": "Cache-Treffer",
+  "tooltip.cacheMiss": "Cache-Fehler",
+  "tooltip.output": "Ausgabe",
+  "tooltip.cost": "Kosten",
+  "tooltip.thinkTime": "Denkzeit",
+  "tooltip.hitRate": "Trefferquote",
+  "tooltip.noMessages": "Keine Nachrichten",
+  "tooltip.sessionTotal": "Sitzung gesamt",
+  "tooltip.messages": "Nachrichten",
+  "rates.label": "{0} ≈ {1}",
+  "rates.justNow": "Gerade eben",
+  "rates.minutesAgo": "vor {0} Min.",
+  "rates.hoursAgo": "vor {0} Std.",
+  "rates.daysAgo": "vor {0} Tagen",
+  "rates.unknown": "Unbekannt",
+  "rates.builtin": "Integriert",
+  "panel.settings": "Einstellungen"
 }

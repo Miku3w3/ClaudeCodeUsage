@@ -3,12 +3,10 @@
   "statusBar.thinking": "사고",
   "statusBar.cumulative": "누계",
   "statusBar.noData": "활성 세션이 없습니다",
-
   "command.showLastCost": "마지막 메시지 비용 표시",
   "command.noMessages": "메시지가 없습니다.",
   "command.lastMsg": "마지막 메시지",
   "command.thinkingTime": "사고 시간",
-
   "panel.title": "Token 모니터",
   "panel.noSession": "활성 세션이 없습니다",
   "panel.noSessionHint": "Claude Code 대화를 시작하면 토큰 사용량이 표시됩니다",
@@ -28,10 +26,27 @@
   "panel.output": "출력",
   "panel.cost": "비용",
   "panel.thinking": "사고",
-
   "tooltip.model": "모델",
   "tooltip.session": "세션",
-
   "budget.warningTitle": "예산 경고",
-  "budget.warningBody": "누적 비용이 {0}을(를) 초과했습니다"
+  "budget.warningBody": "누적 비용이 {0}을(를) 초과했습니다",
+  "tooltip.lastMsg": "마지막 메시지",
+  "tooltip.totalInput": "입력（합계）",
+  "tooltip.cacheHit": "캐시 히트",
+  "tooltip.cacheMiss": "캐시 미스",
+  "tooltip.output": "출력",
+  "tooltip.cost": "비용",
+  "tooltip.thinkTime": "사고 시간",
+  "tooltip.hitRate": "캐시 히트율",
+  "tooltip.noMessages": "메시지 없음",
+  "tooltip.sessionTotal": "세션 누계",
+  "tooltip.messages": "메시지",
+  "rates.label": "{0} ≈ {1}",
+  "rates.justNow": "방금",
+  "rates.minutesAgo": "{0}분 전",
+  "rates.hoursAgo": "{0}시간 전",
+  "rates.daysAgo": "{0}일 전",
+  "rates.unknown": "알 수 없음",
+  "rates.builtin": "내장 데이터",
+  "panel.settings": "설정"
 }
