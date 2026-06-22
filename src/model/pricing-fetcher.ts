@@ -18,7 +18,7 @@ import { tokenMonitorDir } from '../utils/paths';
 import { setCustomRates } from './pricing';
 
 /** Default URL for remote pricing data */
-const DEFAULT_UPDATE_URL = 'https://raw.githubusercontent.com/ClaudeCodeUsage/ClaudeCodeUsage/main/pricing.json';
+const DEFAULT_UPDATE_URL = 'https://raw.githubusercontent.com/Miku3w3/ClaudeCodeUsage/main/pricing.json';
 /** Cache TTL: 24 hours in ms */
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 /** Fetch timeout: 5 seconds */
