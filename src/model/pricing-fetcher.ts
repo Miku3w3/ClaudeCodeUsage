@@ -1,104 +1,135 @@
 /**
  * Pricing auto-update fetcher.
- * Downloads pricing.json from GitHub (or custom URL), caches locally,
+ * Downloads pricing.json from CDN / GitHub, caches locally,
  * falls back to built-in pricing on any failure.
- *
- * The remote pricing.json format:
- * {
- *   "version": 1,
- *   "updatedAt": "2026-07-01",
- *   "rates": { "CNY": 7.25, "EUR": 0.92, ... },
- *   "providers": [ { "name":"...", "currency":"...", "models":{...} } ]
- * }
+ * Supports HTTP CONNECT and SOCKS5 proxy via VSCode http.proxy setting.
  */
 import * as https from 'https';
+import * as net from 'net';
+import * as tls from 'tls';
 import * as fs from 'fs';
 import * as path from 'path';
 import { tokenMonitorDir } from '../utils/paths';
-import { setCustomRates } from './pricing';
+import { setCustomRates, getRatesUpdatedAt, DEFAULT_RATES } from './pricing';
+import * as vscode from 'vscode';
 
-/** Default URL for remote pricing data */
-const DEFAULT_UPDATE_URL = 'https://raw.githubusercontent.com/Miku3w3/ClaudeCodeUsage/main/pricing.json';
-/** Cache TTL: 24 hours in ms */
+const DEFAULT_UPDATE_URLS = [
+  'https://cdn.jsdelivr.net/gh/Miku3w3/ClaudeCodeUsage@master/pricing.json',
+  'https://raw.githubusercontent.com/Miku3w3/ClaudeCodeUsage/master/pricing.json',
+];
 const CACHE_TTL = 24 * 60 * 60 * 1000;
-/** Fetch timeout: 5 seconds */
 const FETCH_TIMEOUT = 5000;
 
-function cachePath(): string {
-  return path.join(tokenMonitorDir(), 'pricing-cache.json');
-}
+function cachePath(): string { return path.join(tokenMonitorDir(), 'pricing-cache.json'); }
 
 export interface RemotePricing {
-  version: number;
-  updatedAt: string;
-  rates?: Record<string, number>;
-  providers?: Array<{
-    name: string;
-    currency: string;
-    models: Record<string, { cacheHit: number; cacheMiss: number; output: number }>;
-  }>;
+  version: number; updatedAt: string; rates?: Record<string, number>;
+  providers?: Array<{ name: string; currency: string; models: Record<string, { cacheHit: number; cacheMiss: number; output: number }> }>;
 }
 
-/**
- * Fetch remote pricing.json. Returns null on any failure.
- */
-function fetchRemote(url: string): Promise<RemotePricing | null> {
-  return new Promise((resolve) => {
-    const req = https.get(url, { timeout: FETCH_TIMEOUT }, (res) => {
-      if (res.statusCode !== 200) { res.resume(); return resolve(null); }
-      let data = '';
-      res.on('data', (chunk: string) => { data += chunk; });
-      res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch { resolve(null); }
+// SOCKS5 tunnel (for Clash mixed-mode proxies)
+function socks5Connect(proxyHost: string, proxyPort: number, targetHost: string, targetPort: number): Promise<net.Socket> {
+  return new Promise((resolve, reject) => {
+    const socket = new net.Socket();
+    socket.setTimeout(FETCH_TIMEOUT);
+    socket.connect(proxyPort, proxyHost, () => {
+      socket.write(Buffer.from([0x05, 0x01, 0x00]));
+      socket.once('data', (data: Buffer) => {
+        if (data[0] !== 0x05 || data[1] !== 0x00) { socket.destroy(); return reject(new Error('auth')); }
+        const hostBytes = Buffer.from(targetHost, 'utf-8');
+        const portBuf = Buffer.alloc(2); portBuf.writeUInt16BE(targetPort, 0);
+        socket.write(Buffer.concat([Buffer.from([0x05, 0x01, 0x00, 0x03, hostBytes.length]), hostBytes, portBuf]));
+        socket.once('data', (resp: Buffer) => {
+          if (resp[0] !== 0x05 || resp[1] !== 0x00) { socket.destroy(); return reject(new Error('connect')); }
+          socket.setTimeout(0); resolve(socket);
+        });
       });
     });
-    req.on('error', () => resolve(null));
-    req.on('timeout', () => { req.destroy(); resolve(null); });
+    socket.on('error', reject);
   });
 }
 
-/**
- * Check for pricing updates. Called once on extension activation.
- * Does NOT block — updates happen asynchronously.
- */
-export async function checkForUpdates(updateUrl?: string): Promise<void> {
-  const url = updateUrl || DEFAULT_UPDATE_URL;
+function httpConnect(proxyHost: string, proxyPort: number, targetHost: string, targetPort: number): Promise<net.Socket> {
+  return new Promise((resolve, reject) => {
+    const socket = new net.Socket();
+    socket.setTimeout(FETCH_TIMEOUT);
+    socket.connect(proxyPort, proxyHost, () => {
+      socket.write(`CONNECT ${targetHost}:${targetPort} HTTP/1.1\r\nHost: ${targetHost}\r\n\r\n`);
+      socket.once('data', (data: Buffer) => {
+        if (!data.toString().includes('200')) { socket.destroy(); return reject(new Error('CONNECT')); }
+        socket.setTimeout(0); resolve(socket);
+      });
+    });
+    socket.on('error', reject);
+  });
+}
+
+function tlsRequest(socket: net.Socket, parsed: URL): Promise<RemotePricing | null> {
+  return new Promise((resolve) => {
+    const tlsSocket = tls.connect({ socket, host: parsed.hostname, servername: parsed.hostname, rejectUnauthorized: false }, () => {
+      tlsSocket.write(`GET ${parsed.pathname}${parsed.search} HTTP/1.1\r\nHost: ${parsed.hostname}\r\nUser-Agent: CCTM/1.0\r\nConnection: close\r\n\r\n`);
+      let body = '';
+      tlsSocket.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      tlsSocket.on('end', () => { const json = body.split('\r\n\r\n').slice(1).join('\r\n\r\n'); try { resolve(JSON.parse(json)); } catch { resolve(null); } });
+      tlsSocket.on('error', () => resolve(null));
+    });
+    tlsSocket.on('error', () => resolve(null));
+    setTimeout(() => { tlsSocket.destroy(); resolve(null); }, FETCH_TIMEOUT);
+  });
+}
+
+async function fetchWithProxy(urlStr: string, proxyUrl: string): Promise<RemotePricing | null> {
+  const parsed = new URL(urlStr);
+  const proxy = new URL(proxyUrl);
+  const h = proxy.hostname, p = parseInt(proxy.port) || 7890;
+  for (const fn of [() => socks5Connect(h, p, parsed.hostname, 443), () => httpConnect(h, p, parsed.hostname, 443)]) {
+    try { const s = await fn(); const d = await tlsRequest(s, parsed); if (d) return d; } catch { /* next */ }
+  }
+  return null;
+}
+
+function fetchDirect(urlStr: string): Promise<RemotePricing | null> {
+  return new Promise((resolve) => {
+    https.get(urlStr, { timeout: FETCH_TIMEOUT }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); return resolve(null); }
+      let data = '';
+      res.on('data', (chunk: string) => { data += chunk; });
+      res.on('end', () => { try { resolve(JSON.parse(data)); } catch { resolve(null); } });
+    }).on('error', () => resolve(null)).on('timeout', function (this: any) { this.destroy(); resolve(null); });
+  });
+}
+
+export async function checkForUpdates(customUrl?: string, force = false): Promise<void> {
+  const urls = customUrl ? [customUrl] : DEFAULT_UPDATE_URLS;
   const cacheFile = cachePath();
 
-  // Check if cache is still fresh
-  try {
-    const stat = fs.statSync(cacheFile);
-    if (Date.now() - stat.mtimeMs < CACHE_TTL) {
-      // Cache fresh — load rates from cache
-      const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
-      if (cached?.rates) {
-        setCustomRates(cached.rates, stat.mtimeMs);
-      }
-      return;
-    }
-  } catch { /* no cache yet */ }
-
-  // Fetch remote
-  const remote = await fetchRemote(url);
-  if (remote) {
-    // Write cache
+  if (!force) {
     try {
-      fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
-      fs.writeFileSync(cacheFile, JSON.stringify(remote, null, 2), 'utf-8');
+      const stat = fs.statSync(cacheFile);
+      if (Date.now() - stat.mtimeMs < CACHE_TTL) {
+        const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
+        if (cached?.rates) { setCustomRates(cached.rates, stat.mtimeMs); return; }
+      }
     } catch { /* */ }
-    // Update rates
-    if (remote.rates) {
-      setCustomRates(remote.rates, Date.now());
-    }
-  } else {
-    // Fetch failed — try loading expired cache as fallback
-    try {
-      const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
-      if (cached?.rates) {
-        const stat = fs.statSync(cacheFile);
-        setCustomRates(cached.rates, stat.mtimeMs);
-      }
-    } catch { /* no cache at all */ }
   }
+
+  const proxyUrl = vscode.workspace.getConfiguration('http').get<string>('proxy') || '';
+  let remote: RemotePricing | null = null;
+  for (const url of urls) {
+    if (proxyUrl && proxyUrl.startsWith('http')) { remote = await fetchWithProxy(url, proxyUrl); if (remote) break; }
+    remote = await fetchDirect(url);
+    if (remote) break;
+  }
+
+  if (remote) {
+    try { fs.mkdirSync(path.dirname(cacheFile), { recursive: true }); fs.writeFileSync(cacheFile, JSON.stringify(remote, null, 2), 'utf-8'); } catch { /* */ }
+    if (remote.rates) { setCustomRates(remote.rates, Date.now()); return; }
+  }
+
+  try {
+    const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
+    if (cached?.rates) { const stat = fs.statSync(cacheFile); setCustomRates(cached.rates, stat.mtimeMs); return; }
+  } catch { /* */ }
+
+  if (!getRatesUpdatedAt()) { setCustomRates(DEFAULT_RATES, 1); }
 }

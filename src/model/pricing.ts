@@ -139,7 +139,7 @@ const PROVIDERS: ProviderMeta[] = [
 // Exchange rates: 1 USD = X units of target currency
 // ═══════════════════════════════════════════════════════════════
 
-const DEFAULT_RATES: Record<string, number> = {
+export const DEFAULT_RATES: Record<string, number> = {
   USD: 1.0,
   CNY: 7.25,
   EUR: 0.92,

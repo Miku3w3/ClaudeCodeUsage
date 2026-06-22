@@ -437,9 +437,9 @@ function updateStatusBar(): void {
   md.appendMarkdown(`${t('tooltip.cost')}  \n  ${formatCost(displayCumulativeCost, currency)}\n\n`);
   md.appendMarkdown(`${t('tooltip.messages')}  \n  ${messageCount}\n\n`);
 
-  // Exchange rate
+  // Exchange rate — only show when display currency differs from model's native currency
   const rateTo = currency;
-  const rateFrom = 'USD';
+  const rateFrom = resolvePricing(currentModel, currentConfig.customModels).currency;
   if (rateTo !== rateFrom) {
     const backConvert = convertCurrency(1, rateTo as any, rateFrom as any);
     const rate = (1 / backConvert).toFixed(2);
@@ -504,6 +504,7 @@ function calcHitRate(hit: number, total: number): string {
 function formatRatesAge(): string {
   const ts = getRatesUpdatedAt();
   if (!ts) return t('rates.unknown');
+  if (ts === 1) return t('rates.builtin'); // Built-in, never fetched from remote
   const diffMs = Date.now() - ts;
   const mins = Math.floor(diffMs / 60000);
   if (mins < 60) return mins <= 1 ? t('rates.justNow') : t('rates.minutesAgo', { '0': String(mins) });
@@ -695,11 +696,14 @@ function refreshConfig(): void {
     detailPanel.refreshHtml();
   }
 
-  // Currency / compact / thinking time change → just refresh display
-  if (currentConfig.resolvedCurrency !== oldCurrency ||
-      currentConfig.pollIntervalMs !== oldPollMs) {
-    // Rebuild poll timer if interval changed
-    if (currentConfig.pollIntervalMs !== oldPollMs && pollTimer) {
+  // Currency change → force re-fetch pricing for fresh rates
+  if (currentConfig.resolvedCurrency !== oldCurrency) {
+    checkForUpdates(currentConfig.pricingUpdateUrl || undefined, true);
+  }
+
+  // Poll interval change → restart timer
+  if (currentConfig.pollIntervalMs !== oldPollMs) {
+    if (pollTimer) {
       clearInterval(pollTimer);
       pollTimer = setInterval(poll, currentConfig.pollIntervalMs);
     }
@@ -833,7 +837,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.commands.registerCommand('claudeCodeTokenMonitor.forceRefreshPricing', async () => {
       vscode.window.showInformationMessage('Refreshing pricing data...');
-      await checkForUpdates(currentConfig.pricingUpdateUrl || undefined);
+      await checkForUpdates(currentConfig.pricingUpdateUrl || undefined, true);
       vscode.window.showInformationMessage('Pricing data refreshed.');
     })
   );

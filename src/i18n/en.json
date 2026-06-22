@@ -50,6 +50,7 @@
   "rates.hoursAgo": "{0}h ago",
   "rates.daysAgo": "{0}d ago",
   "rates.unknown": "Rate unknown",
+  "rates.builtin": "Built-in",
 
   "budget.warningTitle": "Budget Warning",
   "budget.warningBody": "Cumulative cost exceeded {0}"

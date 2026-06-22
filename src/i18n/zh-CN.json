@@ -50,6 +50,7 @@
   "rates.hoursAgo": "{0}小时前更新",
   "rates.daysAgo": "{0}天前更新",
   "rates.unknown": "汇率未知",
+  "rates.builtin": "内置数据",
 
   "budget.warningTitle": "费用警告",
   "budget.warningBody": "累计费用已超过 {0}"
