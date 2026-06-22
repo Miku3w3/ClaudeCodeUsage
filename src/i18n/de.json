@@ -1,0 +1,37 @@
+{
+  "statusBar.idle": "Warten...",
+  "statusBar.thinking": "Denken",
+  "statusBar.cumulative": "Gesamt",
+  "statusBar.noData": "Keine aktive Sitzung erkannt",
+
+  "command.showLastCost": "Letzte Nachricht Kosten anzeigen",
+  "command.noMessages": "Noch keine Nachrichten.",
+  "command.lastMsg": "Letzte Nachricht",
+  "command.thinkingTime": "Denkzeit",
+
+  "panel.title": "Token Monitor",
+  "panel.noSession": "Keine aktive Sitzung",
+  "panel.noSessionHint": "Starten Sie eine Claude Code Unterhaltung, um Token-Nutzung zu sehen",
+  "panel.totalTokens": "Gesamt Tokens",
+  "panel.totalCost": "Gesamtkosten",
+  "panel.inputTokens": "Eingabe (Cache verfehlt)",
+  "panel.cacheHits": "Cache-Treffer",
+  "panel.outputTokens": "Ausgabe",
+  "panel.lastThinkTime": "Letzte Denkzeit",
+  "panel.messagesCount": "Nachrichten",
+  "panel.autoRefresh": "Auto-Aktualisierung alle {0}s",
+  "panel.type": "Typ",
+  "panel.user": "Benutzer",
+  "panel.ai": "KI",
+  "panel.input": "Eingabe",
+  "panel.cache": "Cache",
+  "panel.output": "Ausgabe",
+  "panel.cost": "Kosten",
+  "panel.thinking": "Denken",
+
+  "tooltip.model": "Modell",
+  "tooltip.session": "Sitzung",
+
+  "budget.warningTitle": "Budget-Warnung",
+  "budget.warningBody": "Kumulierte Kosten haben {0} überschritten"
+}

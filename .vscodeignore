@@ -1,0 +1,8 @@
+.vscode/**
+src/**
+archive/**
+tsconfig.json
+.gitignore
+node_modules/.cache/**
+copy-i18n.js
+verify.js

@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "updatedAt": "2026-06-22",
+  "rates": {
+    "USD": 1.0,
+    "CNY": 7.25,
+    "EUR": 0.92,
+    "GBP": 0.79,
+    "JPY": 157.0,
+    "KRW": 1380.0
+  },
+  "providers": [
+    {
+      "name": "DeepSeek",
+      "currency": "CNY",
+      "models": {
+        "deepseek-v4-pro":  { "cacheHit": 0.025, "cacheMiss": 3.0, "output": 6.0 },
+        "deepseek-v4-flash": { "cacheHit": 0.02,  "cacheMiss": 1.0, "output": 2.0 },
+        "deepseek-v3":       { "cacheHit": 0,     "cacheMiss": 2.0, "output": 8.0 },
+        "deepseek-r1":       { "cacheHit": 0,     "cacheMiss": 4.0, "output": 16.0 }
+      }
+    },
+    {
+      "name": "Anthropic",
+      "currency": "USD",
+      "models": {
+        "claude-opus-4-8":    { "cacheHit": 1.50, "cacheMiss": 15.00, "output": 75.00 },
+        "claude-sonnet-4-6":  { "cacheHit": 0.60, "cacheMiss": 6.00,  "output": 30.00 },
+        "claude-haiku-4-5":   { "cacheHit": 0.15, "cacheMiss": 1.50,  "output": 7.50 },
+        "claude-fable-5":     { "cacheHit": 0.30, "cacheMiss": 3.00,  "output": 15.00 }
+      }
+    },
+    {
+      "name": "OpenAI",
+      "currency": "USD",
+      "models": {
+        "gpt-4o":             { "cacheHit": 1.25,  "cacheMiss": 2.50,  "output": 10.00 },
+        "gpt-4o-mini":        { "cacheHit": 0.075, "cacheMiss": 0.15,  "output": 0.60 },
+        "gpt-4.1":            { "cacheHit": 1.25,  "cacheMiss": 2.50,  "output": 10.00 },
+        "o1":                 { "cacheHit": 0,     "cacheMiss": 15.00, "output": 60.00 },
+        "o3-mini":            { "cacheHit": 0,     "cacheMiss": 1.10,  "output": 4.40 },
+        "o4-mini":            { "cacheHit": 0.15,  "cacheMiss": 1.10,  "output": 4.40 }
+      }
+    },
+    {
+      "name": "Google",
+      "currency": "USD",
+      "models": {
+        "gemini-2.5-pro":     { "cacheHit": 0,     "cacheMiss": 1.25,  "output": 10.00 },
+        "gemini-2.5-flash":   { "cacheHit": 0,     "cacheMiss": 0.15,  "output": 0.60 }
+      }
+    },
+    {
+      "name": "Alibaba Qwen",
+      "currency": "CNY",
+      "models": {
+        "qwen3.5-plus":       { "cacheHit": 0,     "cacheMiss": 0.80,  "output": 4.80 },
+        "qwen-long":          { "cacheHit": 0,     "cacheMiss": 0.50,  "output": 2.00 }
+      }
+    },
+    {
+      "name": "Moonshot Kimi",
+      "currency": "USD",
+      "models": {
+        "kimi-k2.5":          { "cacheHit": 0.10,  "cacheMiss": 0.60,  "output": 3.00 },
+        "kimi-k2.6":          { "cacheHit": 0.16,  "cacheMiss": 0.95,  "output": 4.00 }
+      }
+    },
+    {
+      "name": "Zhipu GLM",
+      "currency": "CNY",
+      "models": {
+        "glm-4.7":            { "cacheHit": 0,     "cacheMiss": 2.00,  "output": 16.00 },
+        "glm-5":              { "cacheHit": 0,     "cacheMiss": 4.00,  "output": 18.00 }
+      }
+    },
+    {
+      "name": "ByteDance Doubao",
+      "currency": "CNY",
+      "models": {
+        "doubao-seed-1.8":    { "cacheHit": 0,     "cacheMiss": 0.80,  "output": 2.00 },
+        "doubao-seed-2.0-pro":{ "cacheHit": 0,     "cacheMiss": 3.20,  "output": 16.00 }
+      }
+    },
+    {
+      "name": "Baidu Ernie",
+      "currency": "CNY",
+      "models": {
+        "ernie-4.5-turbo":    { "cacheHit": 0.20,  "cacheMiss": 0.80,  "output": 3.20 },
+        "ernie-5.1":          { "cacheHit": 0,     "cacheMiss": 4.00,  "output": 18.00 }
+      }
+    },
+    {
+      "name": "xAI Grok",
+      "currency": "USD",
+      "models": {
+        "grok-4":             { "cacheHit": 0,     "cacheMiss": 2.00,  "output": 8.00 }
+      }
+    },
+    {
+      "name": "Mistral",
+      "currency": "USD",
+      "models": {
+        "mistral-large":      { "cacheHit": 0,     "cacheMiss": 2.00,  "output": 6.00 },
+        "mistral-small":      { "cacheHit": 0,     "cacheMiss": 0.20,  "output": 0.60 }
+      }
+    }
+  ]
+}

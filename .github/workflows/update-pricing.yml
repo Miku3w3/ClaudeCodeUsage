@@ -1,0 +1,30 @@
+name: Update Pricing
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Every Monday at 9am UTC
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate pricing.json
+        run: |
+          node -e "
+          const p = require('./pricing.json');
+          if (!p.version || !p.providers || !p.rates) {
+            console.error('Invalid pricing.json structure');
+            process.exit(1);
+          }
+          console.log('pricing.json valid — ' + p.providers.length + ' providers, ' + Object.keys(p.rates).length + ' currencies');
+          console.log('Last updated: ' + p.updatedAt);
+          "
+
+      - name: Check for manual updates needed
+        run: |
+          echo "No automated price scraping configured yet."
+          echo "To update pricing, edit pricing.json and push directly to main."
+          echo "Or create a PR from this workflow run."

@@ -1,0 +1,37 @@
+{
+  "statusBar.idle": "待機中...",
+  "statusBar.thinking": "思考",
+  "statusBar.cumulative": "累計",
+  "statusBar.noData": "アクティブなセッションがありません",
+
+  "command.showLastCost": "最後のメッセージ費用を表示",
+  "command.noMessages": "メッセージはまだありません。",
+  "command.lastMsg": "最後のメッセージ",
+  "command.thinkingTime": "思考時間",
+
+  "panel.title": "Token モニター",
+  "panel.noSession": "アクティブなセッションがありません",
+  "panel.noSessionHint": "Claude Code 会話を開始すると token 使用量が表示されます",
+  "panel.totalTokens": "合計 Tokens",
+  "panel.totalCost": "合計費用",
+  "panel.inputTokens": "入力（キャッシュミス）",
+  "panel.cacheHits": "キャッシュヒット",
+  "panel.outputTokens": "出力",
+  "panel.lastThinkTime": "最終思考時間",
+  "panel.messagesCount": "メッセージ",
+  "panel.autoRefresh": "{0} 秒ごとに自動更新",
+  "panel.type": "種類",
+  "panel.user": "ユーザー",
+  "panel.ai": "AI",
+  "panel.input": "入力",
+  "panel.cache": "キャッシュ",
+  "panel.output": "出力",
+  "panel.cost": "費用",
+  "panel.thinking": "思考",
+
+  "tooltip.model": "モデル",
+  "tooltip.session": "セッション",
+
+  "budget.warningTitle": "予算警告",
+  "budget.warningBody": "累計費用が {0} を超えました"
+}

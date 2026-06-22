@@ -1,0 +1,37 @@
+{
+  "statusBar.idle": "대기 중...",
+  "statusBar.thinking": "사고",
+  "statusBar.cumulative": "누계",
+  "statusBar.noData": "활성 세션이 없습니다",
+
+  "command.showLastCost": "마지막 메시지 비용 표시",
+  "command.noMessages": "메시지가 없습니다.",
+  "command.lastMsg": "마지막 메시지",
+  "command.thinkingTime": "사고 시간",
+
+  "panel.title": "Token 모니터",
+  "panel.noSession": "활성 세션이 없습니다",
+  "panel.noSessionHint": "Claude Code 대화를 시작하면 토큰 사용량이 표시됩니다",
+  "panel.totalTokens": "총 Tokens",
+  "panel.totalCost": "총 비용",
+  "panel.inputTokens": "입력（캐시 미스）",
+  "panel.cacheHits": "캐시 히트",
+  "panel.outputTokens": "출력",
+  "panel.lastThinkTime": "마지막 사고 시간",
+  "panel.messagesCount": "메시지",
+  "panel.autoRefresh": "{0}초마다 자동 새로고침",
+  "panel.type": "유형",
+  "panel.user": "사용자",
+  "panel.ai": "AI",
+  "panel.input": "입력",
+  "panel.cache": "캐시",
+  "panel.output": "출력",
+  "panel.cost": "비용",
+  "panel.thinking": "사고",
+
+  "tooltip.model": "모델",
+  "tooltip.session": "세션",
+
+  "budget.warningTitle": "예산 경고",
+  "budget.warningBody": "누적 비용이 {0}을(를) 초과했습니다"
+}

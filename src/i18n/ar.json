@@ -1,0 +1,37 @@
+{
+  "statusBar.idle": "في الانتظار...",
+  "statusBar.thinking": "تفكير",
+  "statusBar.cumulative": "الإجمالي",
+  "statusBar.noData": "لم يتم اكتشاف جلسة نشطة",
+
+  "command.showLastCost": "إظهار تكلفة آخر رسالة",
+  "command.noMessages": "لا توجد رسائل بعد.",
+  "command.lastMsg": "آخر رسالة",
+  "command.thinkingTime": "وقت التفكير",
+
+  "panel.title": "مراقب الرموز",
+  "panel.noSession": "لا توجد جلسة نشطة",
+  "panel.noSessionHint": "ابدأ محادثة Claude Code لعرض استخدام الرموز",
+  "panel.totalTokens": "إجمالي الرموز",
+  "panel.totalCost": "التكلفة الإجمالية",
+  "panel.inputTokens": "الإدخال (فقدان الذاكرة المؤقتة)",
+  "panel.cacheHits": "إصابات الذاكرة المؤقتة",
+  "panel.outputTokens": "الإخراج",
+  "panel.lastThinkTime": "آخر وقت تفكير",
+  "panel.messagesCount": "رسائل",
+  "panel.autoRefresh": "تحديث تلقائي كل {0} ثانية",
+  "panel.type": "النوع",
+  "panel.user": "المستخدم",
+  "panel.ai": "AI",
+  "panel.input": "الإدخال",
+  "panel.cache": "الذاكرة المؤقتة",
+  "panel.output": "الإخراج",
+  "panel.cost": "التكلفة",
+  "panel.thinking": "تفكير",
+
+  "tooltip.model": "النموذج",
+  "tooltip.session": "الجلسة",
+
+  "budget.warningTitle": "تحذير الميزانية",
+  "budget.warningBody": "تجاوزت التكلفة التراكمية {0}"
+}

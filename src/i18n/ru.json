@@ -1,0 +1,37 @@
+{
+  "statusBar.idle": "Ожидание...",
+  "statusBar.thinking": "Размышление",
+  "statusBar.cumulative": "Всего",
+  "statusBar.noData": "Активная сессия не обнаружена",
+
+  "command.showLastCost": "Показать стоимость последнего сообщения",
+  "command.noMessages": "Сообщений пока нет.",
+  "command.lastMsg": "Последнее сообщение",
+  "command.thinkingTime": "Время размышления",
+
+  "panel.title": "Монитор Токенов",
+  "panel.noSession": "Нет активной сессии",
+  "panel.noSessionHint": "Начните разговор в Claude Code, чтобы увидеть использование токенов",
+  "panel.totalTokens": "Всего Токенов",
+  "panel.totalCost": "Общая стоимость",
+  "panel.inputTokens": "Ввод (промах кэша)",
+  "panel.cacheHits": "Попадания кэша",
+  "panel.outputTokens": "Вывод",
+  "panel.lastThinkTime": "Последнее время размышления",
+  "panel.messagesCount": "сообщений",
+  "panel.autoRefresh": "Автообновление каждые {0}с",
+  "panel.type": "Тип",
+  "panel.user": "Пользователь",
+  "panel.ai": "ИИ",
+  "panel.input": "Ввод",
+  "panel.cache": "Кэш",
+  "panel.output": "Вывод",
+  "panel.cost": "Стоимость",
+  "panel.thinking": "Размышление",
+
+  "tooltip.model": "Модель",
+  "tooltip.session": "Сессия",
+
+  "budget.warningTitle": "Предупреждение о бюджете",
+  "budget.warningBody": "Накопленная стоимость превысила {0}"
+}

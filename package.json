@@ -1,0 +1,195 @@
+{
+  "name": "claude-code-token-monitor",
+  "displayName": "Claude Code Token Monitor",
+  "description": "Real-time token usage, cost, and thinking time tracker for Claude Code. Supports DeepSeek, Anthropic, OpenAI, and custom model pricing. Multi-language UI with 11 languages.",
+  "version": "0.11.1",
+  "publisher": "local",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "claudeCodeTokenMonitor.openSettings",
+        "title": "Open Token Monitor Settings"
+      },
+      {
+        "command": "claudeCodeTokenMonitor.showDetailPanel",
+        "title": "Show Token Usage Detail"
+      },
+      {
+        "command": "claudeCodeTokenMonitor.refresh",
+        "title": "Refresh Token Data"
+      },
+      {
+        "command": "claudeCodeTokenMonitor.addCustomModel",
+        "title": "Add Custom Model Pricing"
+      },
+      {
+        "command": "claudeCodeTokenMonitor.manageCustomModels",
+        "title": "Manage Custom Models"
+      },
+      {
+        "command": "claudeCodeTokenMonitor.forceRefreshPricing",
+        "title": "Force Refresh Pricing Data"
+      },
+      {
+        "command": "claudeCodeTokenMonitor.showLastMessageCost",
+        "title": "Show Last Message Cost"
+      }
+    ],
+    "views": {
+      "claude-token-monitor": [
+        {
+          "id": "claudeCodeTokenMonitor.detailPanel",
+          "name": "Token Monitor",
+          "type": "webview"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "claude-token-monitor",
+          "title": "Claude Code Token Monitor",
+          "icon": "$(graph)"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Claude Code Token Monitor",
+      "properties": {
+        "claudeTokenMonitor.language": {
+          "type": "string",
+          "default": "auto",
+          "enum": ["auto", "en", "zh-CN", "zh-TW", "ja", "ko", "es", "ar", "pt", "de", "fr", "ru"],
+          "enumDescriptions": [
+            "Follow VSCode display language",
+            "English",
+            "Simplified Chinese (简体中文)",
+            "Traditional Chinese (繁體中文)",
+            "Japanese (日本語)",
+            "Korean (한국어)",
+            "Spanish (Español)",
+            "Arabic (العربية)",
+            "Portuguese (Português)",
+            "German (Deutsch)",
+            "French (Français)",
+            "Russian (Русский)"
+          ],
+          "description": "UI display language."
+        },
+        "claudeTokenMonitor.currency": {
+          "type": "string",
+          "default": "auto",
+          "enum": ["auto", "CNY", "USD", "EUR", "JPY", "KRW", "GBP"],
+          "enumDescriptions": [
+            "Auto-detect from language",
+            "Chinese Yuan (¥)",
+            "US Dollar ($)",
+            "Euro (€)",
+            "Japanese Yen (¥)",
+            "Korean Won (₩)",
+            "British Pound (£)"
+          ],
+          "description": "Display currency for costs."
+        },
+        "claudeTokenMonitor.exchangeRates": {
+          "type": "object",
+          "default": {},
+          "description": "Override built-in exchange rates. Keys are currency codes, values are how many units per 1 USD. Example: {\"CNY\": 7.25, \"EUR\": 0.92, \"JPY\": 157}."
+        },
+        "claudeTokenMonitor.customModels": {
+          "type": "array",
+          "default": [],
+          "description": "Custom model pricing entries for providers not built-in.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Display name for this model (e.g. 'My Custom Model')"
+              },
+              "matchPattern": {
+                "type": "string",
+                "description": "Regex pattern to match model names (e.g. 'my-model')"
+              },
+              "cacheHit": {
+                "type": "number",
+                "description": "Price per 1M tokens for cache hits"
+              },
+              "cacheMiss": {
+                "type": "number",
+                "description": "Price per 1M tokens for cache misses (non-cached input)"
+              },
+              "output": {
+                "type": "number",
+                "description": "Price per 1M tokens for output"
+              },
+              "currency": {
+                "type": "string",
+                "description": "Currency code for this model's pricing (e.g. 'USD')"
+              }
+            }
+          }
+        },
+        "claudeTokenMonitor.statusBar.showThinkingTime": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show thinking time in the status bar."
+        },
+        "claudeTokenMonitor.statusBar.showModelName": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show the current model name in the status bar."
+        },
+        "claudeTokenMonitor.statusBar.compactMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Compact status bar: show only session title + cumulative tokens + cost."
+        },
+        "claudeTokenMonitor.budgetWarning": {
+          "type": "number",
+          "default": 0,
+          "description": "Show a warning when cumulative cost exceeds this amount (in display currency). 0 = disabled."
+        },
+        "claudeTokenMonitor.pricing.autoUpdate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically check for pricing and exchange rate updates from GitHub."
+        },
+        "claudeTokenMonitor.pricing.updateUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Custom URL for pricing updates. Leave empty to use the default GitHub source."
+        },
+        "claudeTokenMonitor.pollIntervalMs": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 1000,
+          "maximum": 10000,
+          "description": "How often (ms) to check the transcript file for new data."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./ && node copy-i18n.js",
+    "watch": "tsc -watch -p ./",
+    "lint": "echo 'No linter configured'"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "statusBar.idle": "等待對話中...",
+  "statusBar.thinking": "思考",
+  "statusBar.cumulative": "累計",
+  "statusBar.noData": "未偵測到活躍會話",
+
+  "command.showLastCost": "顯示上一條訊息費用",
+  "command.noMessages": "暫無訊息。",
+  "command.lastMsg": "上一條訊息",
+  "command.thinkingTime": "思考時間",
+
+  "panel.title": "Token 監控",
+  "panel.noSession": "暫無活躍會話",
+  "panel.noSessionHint": "啟動 Claude Code 對話後將自動顯示 token 用量",
+  "panel.totalTokens": "總 Tokens",
+  "panel.totalCost": "總費用",
+  "panel.inputTokens": "輸入（快取未命中）",
+  "panel.cacheHits": "快取命中",
+  "panel.outputTokens": "輸出",
+  "panel.lastThinkTime": "上次思考時間",
+  "panel.messagesCount": "條訊息",
+  "panel.autoRefresh": "每 {0} 秒自動重新整理",
+  "panel.type": "類型",
+  "panel.user": "使用者",
+  "panel.ai": "AI",
+  "panel.input": "輸入",
+  "panel.cache": "快取",
+  "panel.output": "輸出",
+  "panel.cost": "費用",
+  "panel.thinking": "思考",
+
+  "tooltip.model": "模型",
+  "tooltip.session": "會話",
+
+  "budget.warningTitle": "費用警告",
+  "budget.warningBody": "累計費用已超過 {0}"
+}

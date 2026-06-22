@@ -1,0 +1,37 @@
+{
+  "statusBar.idle": "Esperando...",
+  "statusBar.thinking": "Piensa",
+  "statusBar.cumulative": "Total",
+  "statusBar.noData": "No se detectó sesión activa",
+
+  "command.showLastCost": "Mostrar costo del último mensaje",
+  "command.noMessages": "No hay mensajes aún.",
+  "command.lastMsg": "Último mensaje",
+  "command.thinkingTime": "Tiempo de pensamiento",
+
+  "panel.title": "Monitor de Tokens",
+  "panel.noSession": "Sin sesión activa",
+  "panel.noSessionHint": "Inicia una conversación en Claude Code para ver el uso de tokens",
+  "panel.totalTokens": "Total Tokens",
+  "panel.totalCost": "Costo total",
+  "panel.inputTokens": "Entrada (fallo de caché)",
+  "panel.cacheHits": "Aciertos de caché",
+  "panel.outputTokens": "Salida",
+  "panel.lastThinkTime": "Último tiempo de pensamiento",
+  "panel.messagesCount": "mensajes",
+  "panel.autoRefresh": "Actualización automática cada {0}s",
+  "panel.type": "Tipo",
+  "panel.user": "Usuario",
+  "panel.ai": "IA",
+  "panel.input": "Entrada",
+  "panel.cache": "Caché",
+  "panel.output": "Salida",
+  "panel.cost": "Costo",
+  "panel.thinking": "Piensa",
+
+  "tooltip.model": "Modelo",
+  "tooltip.session": "Sesión",
+
+  "budget.warningTitle": "Alerta de presupuesto",
+  "budget.warningBody": "El costo acumulado superó {0}"
+}
