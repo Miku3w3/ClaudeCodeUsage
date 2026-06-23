@@ -109,7 +109,7 @@ const ALL_PROVIDERS = [
   {
     name: 'Google',
     currency: 'USD',
-    urls: ['https://ai.google.dev/pricing'],
+    urls: ['https://cloud.google.com/vertex-ai/generative-ai/pricing'],
     prompt: 'Extract ALL Gemini model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens. cacheHit=0 if no cache discount.',
   },
   {
@@ -151,7 +151,7 @@ const ALL_PROVIDERS = [
   {
     name: 'Mistral',
     currency: 'USD',
-    urls: ['https://mistral.ai/technology/', 'https://docs.mistral.ai/getting-started/pricing/'],
+    urls: ['https://mistral.ai/pricing'],
     prompt: 'Extract ALL Mistral model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens.',
   },
 ];
