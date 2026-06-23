@@ -124,6 +124,13 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       cost: t('panel.cost'),
       thinking: t('panel.thinking'),
       settings: t('panel.settings'),
+      pauseRefresh: t('panel.pauseRefresh'),
+      resumeRefresh: t('panel.resumeRefresh'),
+      lastModel: t('tooltip.lastModel'),
+      modelLabel: t('tooltip.model'),
+      totalInput: t('tooltip.totalInput'),
+      cacheMiss: t('tooltip.cacheMiss'),
+      hitRate: t('tooltip.hitRate'),
     };
     const strJson = JSON.stringify(STR);
     const dirAttr = isRTL ? ' dir="rtl"' : '';
@@ -174,6 +181,11 @@ export class DetailPanel implements vscode.WebviewViewProvider {
   .idle { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
   .settings-btn { position: fixed; top: 14px; right: 24px; background: var(--card-bg); border: 1px solid var(--border); color: var(--fg); padding: 4px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: var(--font); z-index: 10; }
   .settings-btn:hover { background: var(--accent2); color: #fff; }
+  .pause-btn { margin-left: 8px; background: var(--card-bg); border: 1px solid var(--border); color: var(--fg); padding: 1px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; font-family: var(--font); vertical-align: middle; }
+  .pause-btn:hover { background: var(--accent2); color: #fff; }
+  .model-card { background: var(--card-bg); border-radius: 6px; padding: 6px 10px; text-align: center; display: inline-block; margin: 4px; }
+  .model-card .mname { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
+  .model-card .mcost { font-size: 13px; font-weight: 700; color: var(--accent2); }
 </style>
 </head>
 <body>
@@ -199,6 +211,16 @@ vscode.postMessage({ type: 'ready' });
 let currentLang = '${lang}';
 let currentCurrency = '${currency}';
 let currentPollMs = 2000;
+let isPaused = false;
+
+function togglePause() {
+  isPaused = !isPaused;
+  if (!isPaused && sessionData) {
+    renderFull(sessionData, sessionData.thinkingTime);
+  }
+  var btn = document.getElementById('pauseBtn');
+  if (btn) btn.textContent = isPaused ? STR.resumeRefresh : STR.pauseRefresh;
+}
 
 function openSettings() {
   vscode.postMessage({ type: 'openSettings' });
@@ -211,7 +233,7 @@ window.addEventListener('message', (e) => {
     if (msg.lang) currentLang = msg.lang;
     if (msg.currency) currentCurrency = msg.currency;
     if (msg.session.pollIntervalMs) currentPollMs = msg.session.pollIntervalMs;
-    renderFull(sessionData, msg.thinkingTime);
+    if (!isPaused) renderFull(sessionData, msg.thinkingTime);
   }
 });
 
@@ -242,38 +264,54 @@ function fmtTime(ts) {
 }
 
 function renderFull(s, thinkingTime) {
+  // Model stats (only when multiple models used)
+  var modelStatsHtml = '';
+  if (s.modelStats && s.modelStats.length > 1) {
+    modelStatsHtml = '<div style="margin-top:8px">' +
+      s.modelStats.map(function(ms) {
+        return '<span class="model-card"><div class="mname">' + esc(ms.model) + '</div><div class="mcost">' + fmtCost(ms.cost) + ' (' + fmtTokens(ms.tokens) + ')</div></span>';
+      }).join('') + '</div>';
+  }
+
   var html =
     '<div class="header">' +
       '<h2>' + esc(s.title) + '</h2>' +
-      '<div class="meta">' + esc(s.model) + ' | ' + s.messageCount + ' ' + STR.messagesCount + '</div>' +
+      '<div class="meta">' + STR.lastModel + ': ' + esc(s.model) + ' | ' + s.messageCount + ' ' + STR.messagesCount + '</div>' +
     '</div>' +
     '<div class="stats-grid">' +
       '<div class="stat-card"><div class="label">' + STR.totalTokens + '</div><div class="value">' + fmtTokens(s.totalTokens) + '</div></div>' +
       '<div class="stat-card"><div class="label">' + STR.totalCost + '</div><div class="value cost">' + fmtCost(s.cumulativeCostCNY) + '</div></div>' +
-      '<div class="stat-card"><div class="label">' + STR.inputTokens + '</div><div class="value">' + fmtTokens(s.cumulativeInputTokens) + '</div></div>' +
+      '<div class="stat-card"><div class="label">' + STR.totalInput + '</div><div class="value">' + fmtTokens(s.cumulativeInputTokens + s.cumulativeCacheReadTokens) + '</div></div>' +
       '<div class="stat-card"><div class="label">' + STR.cacheHits + '</div><div class="value">' + fmtTokens(s.cumulativeCacheReadTokens) + '</div></div>' +
       '<div class="stat-card"><div class="label">' + STR.outputTokens + '</div><div class="value">' + fmtTokens(s.cumulativeOutputTokens) + '</div></div>' +
       '<div class="stat-card"><div class="label">' + STR.lastThinkTime + '</div><div class="value">' + fmtThink(thinkingTime) + '</div></div>' +
-    '</div>' +
+    '</div>' + modelStatsHtml +
     '<div class="table-container"><table>' +
-      '<thead><tr><th>#</th><th>' + STR.type + '</th><th>' + STR.input + '</th><th>' + STR.cache + '</th><th>' + STR.output + '</th><th>' + STR.cost + '</th><th>' + STR.thinking + '</th></tr></thead>' +
+      '<thead><tr><th>#</th><th>' + STR.type + '</th><th>' + STR.modelLabel + '</th><th>' + STR.totalInput + '</th><th>' + STR.cacheHits + '</th><th>' + STR.cacheMiss + '</th><th>' + STR.output + '</th><th>' + STR.hitRate + '</th><th>' + STR.cost + '</th><th>' + STR.thinking + '</th></tr></thead>' +
       '<tbody>' +
         s.messages.map(function(m, i) {
           var cls = m.isUserMessage ? 'row-user' : 'row-assistant';
           var type = m.isUserMessage ? STR.user : STR.ai;
           var time = fmtTime(m.timestamp);
+          var totIn = m.isUserMessage ? 0 : (m.inputTokens + m.cacheReadTokens);
+          var hitRate = m.isUserMessage ? '-' : (totIn > 0 ? (m.cacheReadTokens / totIn * 100).toFixed(1) + '%' : '0%');
           return '<tr class="' + cls + '">' +
             '<td>' + (i + 1) + '</td>' +
             '<td>' + type + ' <span style="font-size:9px;color:var(--muted)">' + time + '</span></td>' +
+            '<td>' + (m.isUserMessage ? '-' : esc(m.model || '-')) + '</td>' +
+            '<td>' + (m.isUserMessage ? '-' : fmtTokens(totIn)) + '</td>' +
+            '<td>' + (m.isUserMessage ? '-' : fmtTokens(m.cacheReadTokens)) + '</td>' +
             '<td>' + (m.isUserMessage ? '-' : fmtTokens(m.inputTokens)) + '</td>' +
-            '<td>' + (m.isUserMessage ? '-' : (m.cacheReadTokens > 0 ? fmtTokens(m.cacheReadTokens) : '0')) + '</td>' +
             '<td>' + (m.isUserMessage ? '-' : fmtTokens(m.outputTokens)) + '</td>' +
+            '<td>' + hitRate + '</td>' +
             '<td>' + (m.isUserMessage ? '-' : fmtCost(m.costCNY)) + '</td>' +
             '<td><span class="think-time">' + fmtThink(m.thinkingTimeMs) + '</span></td>' +
           '</tr>';
         }).join('') +
       '</tbody></table></div>' +
-    '<div class="footer">' + STR.autoRefresh.replace('{0}', String(Math.round(currentPollMs/1000))) + '</div>';
+    '<div class="footer">' + STR.autoRefresh.replace('{0}', String(Math.round(currentPollMs/1000))) +
+      ' <button id="pauseBtn" class="pause-btn" onclick="togglePause()">' + STR.pauseRefresh + '</button>' +
+    '</div>';
 
   document.getElementById('app').innerHTML = html;
   var container = document.querySelector('.table-container');

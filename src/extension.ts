@@ -41,6 +41,7 @@ let activeSessionOverride: { sessionId: string; cwd: string } | null = null;
 const sessionTitleCache = new Map<string, string>();
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let idleByUserChoice = false;
+let idleKnownSessions: Set<string> = new Set(); // sessions known when idle was set; new ones trigger auto-switch
 let cachedTranscripts: Array<{ sessionId: string; cwd: string }> | null = null;
 let transcriptCacheTime = 0;
 
@@ -248,8 +249,14 @@ function poll(): void {
     // 4. If session changed, reset all state
     if (active.sessionId !== currentSessionId) {
       if (idleByUserChoice) {
-        updateStatusBar();
-        return;
+        // Auto-clear idle only if a genuinely new session appeared (not one we knew about)
+        if (!idleKnownSessions.has(active.sessionId)) {
+          idleByUserChoice = false;
+          idleKnownSessions.clear();
+        } else {
+          updateStatusBar();
+          return;
+        }
       }
       currentSessionId = active.sessionId;
       currentTitle = getSessionTitle(active) || '';
@@ -405,7 +412,7 @@ function updateStatusBar(): void {
   const md = new vscode.MarkdownString();
   md.supportHtml = true; md.isTrusted = true;
   md.appendMarkdown(`### \u{1F4CA} ${escapeMd(currentTitle)}\n\n`);
-  md.appendMarkdown(`*${escapeMd(currentModel)}*\n\n`);
+  md.appendMarkdown(`*${t('tooltip.lastModel')}: ${escapeMd(currentModel)}*\n\n`);
 
   // ── Last message section ──
   if (lastAsst) {
@@ -531,6 +538,21 @@ function writeClaudeReadable(): void {
 }
 
 // ─── Webview ──────────────────────────────────────────────────
+function buildModelStats(): Array<{ model: string; cost: number; tokens: number }> {
+  const map = new Map<string, { cost: number; tokens: number }>();
+  for (const m of messages) {
+    if (m.isUserMessage) continue;
+    const key = m.model || 'unknown';
+    const entry = map.get(key) || { cost: 0, tokens: 0 };
+    const nativeCost = m.costCNY;
+    const displayCost = costInDisplayCurrency(nativeCost, currentConfig.resolvedCurrency);
+    entry.cost += displayCost;
+    entry.tokens += m.inputTokens + m.cacheReadTokens + m.outputTokens;
+    map.set(key, entry);
+  }
+  return Array.from(map.entries()).map(([model, v]) => ({ model, cost: v.cost, tokens: v.tokens }));
+}
+
 function pushToWebview(): void {
   if (!detailPanel) return;
   const totalTokens = cumulativeInput + cumulativeCacheRead + cumulativeOutput;
@@ -549,6 +571,7 @@ function pushToWebview(): void {
     lang: currentConfig.resolvedLanguage,
     currency: currency,
     pollIntervalMs: currentConfig.pollIntervalMs,
+    modelStats: buildModelStats(),
   } as any);
 }
 
@@ -574,6 +597,7 @@ function pushToWebviewPanel(panel: vscode.WebviewPanel): void {
       lang: currentConfig.resolvedLanguage,
       currency: currency,
       pollIntervalMs: currentConfig.pollIntervalMs,
+      modelStats: buildModelStats(),
     },
   });
 }
@@ -587,6 +611,10 @@ function handleTabChange(label: string): void {
   // Case 1: "Claude Code" = new/empty session → show idle
   if (label === 'Claude Code') {
     idleByUserChoice = true;
+    // Remember existing sessions so we can detect new ones
+    idleKnownSessions = new Set();
+    const current = scanSessions();
+    for (const s of current) idleKnownSessions.add(s.sessionId);
     resetState();
     updateStatusBar();
     return;

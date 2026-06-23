@@ -29,9 +29,12 @@
   "panel.cost": "Cost",
   "panel.thinking": "Think",
   "panel.settings": "Settings",
+  "panel.pauseRefresh": "Pause",
+  "panel.resumeRefresh": "Resume",
 
   "tooltip.model": "Model",
   "tooltip.session": "Session",
+  "tooltip.lastModel": "Last message model",
   "tooltip.lastMsg": "Last message",
   "tooltip.totalInput": "Input (total)",
   "tooltip.cacheHit": "Cache hit",

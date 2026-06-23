@@ -29,9 +29,12 @@
   "panel.cost": "费用",
   "panel.thinking": "思考",
   "panel.settings": "设置",
+  "panel.pauseRefresh": "暂停",
+  "panel.resumeRefresh": "继续",
 
   "tooltip.model": "模型",
   "tooltip.session": "会话",
+  "tooltip.lastModel": "上条信息选用模型",
   "tooltip.lastMsg": "上条消息",
   "tooltip.totalInput": "输入（总）",
   "tooltip.cacheHit": "缓存命中",
