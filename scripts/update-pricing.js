@@ -134,6 +134,7 @@ const ALL_PROVIDERS = [
     name: 'ByteDance Doubao',
     currency: 'CNY',
     urls: ['https://www.volcengine.com/docs/82379/1297666'],
+    search: '火山引擎 豆包大模型 seed 定价 每百万token 价格 CNY 2025 2026',
     prompt: 'Extract ALL Doubao model pricing from this page as JSON. Keys are lowercase model names. Use CNY per 1M tokens.',
   },
   {
@@ -274,7 +275,7 @@ async function main() {
       source = 'search';
       console.log('    (no page — searching the web...)');
       try {
-        const searchQuery = `${src.name} API model pricing per million tokens ${src.currency} ${new Date().getFullYear()}`;
+        const searchQuery = src.search || `${src.name} API model pricing per million tokens ${src.currency} ${new Date().getFullYear()}`;
         const searchText = await searchWeb(searchQuery);
         if (searchText.length > 50) {
           json = await callAI(
