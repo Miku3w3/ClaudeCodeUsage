@@ -538,19 +538,23 @@ function writeClaudeReadable(): void {
 }
 
 // ─── Webview ──────────────────────────────────────────────────
-function buildModelStats(): Array<{ model: string; cost: number; tokens: number }> {
-  const map = new Map<string, { cost: number; tokens: number }>();
+function buildModelStats(): Array<{ model: string; cost: number; tokens: number; inputTokens: number; cacheHits: number; cacheMiss: number; outputTokens: number }> {
+  const map = new Map<string, { cost: number; tokens: number; inputTokens: number; cacheHits: number; cacheMiss: number; outputTokens: number }>();
   for (const m of messages) {
     if (m.isUserMessage) continue;
-    const key = m.model || 'unknown';
-    const entry = map.get(key) || { cost: 0, tokens: 0 };
-    const nativeCost = m.costCNY;
-    const displayCost = costInDisplayCurrency(nativeCost, currentConfig.resolvedCurrency);
+    const model = m.model;
+    if (!model || model === 'unknown' || model === '<synthetic>' || model.startsWith('<')) continue;
+    const entry = map.get(model) || { cost: 0, tokens: 0, inputTokens: 0, cacheHits: 0, cacheMiss: 0, outputTokens: 0 };
+    const displayCost = costInDisplayCurrency(m.costCNY, currentConfig.resolvedCurrency);
     entry.cost += displayCost;
+    entry.inputTokens += m.inputTokens + m.cacheReadTokens;
+    entry.cacheHits += m.cacheReadTokens;
+    entry.cacheMiss += m.inputTokens;
+    entry.outputTokens += m.outputTokens;
     entry.tokens += m.inputTokens + m.cacheReadTokens + m.outputTokens;
-    map.set(key, entry);
+    map.set(model, entry);
   }
-  return Array.from(map.entries()).map(([model, v]) => ({ model, cost: v.cost, tokens: v.tokens }));
+  return Array.from(map.entries()).map(([model, v]) => ({ model, ...v }));
 }
 
 function pushToWebview(): void {

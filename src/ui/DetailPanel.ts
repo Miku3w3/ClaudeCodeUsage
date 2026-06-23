@@ -183,9 +183,10 @@ export class DetailPanel implements vscode.WebviewViewProvider {
   .settings-btn:hover { background: var(--accent2); color: #fff; }
   .pause-btn { margin-left: 8px; background: var(--card-bg); border: 1px solid var(--border); color: var(--fg); padding: 1px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; font-family: var(--font); vertical-align: middle; }
   .pause-btn:hover { background: var(--accent2); color: #fff; }
-  .model-card { background: var(--card-bg); border-radius: 6px; padding: 6px 10px; text-align: center; display: inline-block; margin: 4px; }
-  .model-card .mname { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
-  .model-card .mcost { font-size: 13px; font-weight: 700; color: var(--accent2); }
+  .model-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--fg); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: var(--font); width: 100%; text-align: left; }
+  .model-btn:hover { background: var(--accent2); color: #fff; }
+  .model-detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+  .model-detail-grid .stat-card .value { font-size: 12px; }
 </style>
 </head>
 <body>
@@ -212,6 +213,11 @@ let currentLang = '${lang}';
 let currentCurrency = '${currency}';
 let currentPollMs = 2000;
 let isPaused = false;
+
+function toggleModelDetail(idx) {
+  var el = document.getElementById('modelDetail-' + idx);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
 
 function togglePause() {
   isPaused = !isPaused;
@@ -264,12 +270,38 @@ function fmtTime(ts) {
 }
 
 function renderFull(s, thinkingTime) {
-  // Model stats (only when multiple models used)
+  // Save expanded model details state
+  var expandedModels = [];
+  for (var i = 0; i < 100; i++) {
+    var el = document.getElementById('modelDetail-' + i);
+    if (el && el.style.display !== 'none') expandedModels.push(i);
+  }
+
+  var cumInput = s.cumulativeInputTokens + s.cumulativeCacheReadTokens;
+  var cumHitRate = cumInput > 0 ? (s.cumulativeCacheReadTokens / cumInput * 100).toFixed(1) + '%' : '0%';
+
+  // Model stats (collapsible, only when multiple models used)
   var modelStatsHtml = '';
   if (s.modelStats && s.modelStats.length > 1) {
     modelStatsHtml = '<div style="margin-top:8px">' +
-      s.modelStats.map(function(ms) {
-        return '<span class="model-card"><div class="mname">' + esc(ms.model) + '</div><div class="mcost">' + fmtCost(ms.cost) + ' (' + fmtTokens(ms.tokens) + ')</div></span>';
+      s.modelStats.map(function(ms, idx) {
+        var hitRate = ms.inputTokens > 0 ? (ms.cacheHits / ms.inputTokens * 100).toFixed(1) + '%' : '0%';
+        return '<div style="margin-bottom:4px">' +
+          '<button class="model-btn" onclick="toggleModelDetail(' + idx + ')">' +
+            '&#128202; ' + esc(ms.model) + ' &nbsp; ' + fmtCost(ms.cost) + ' (' + fmtTokens(ms.tokens) + ')' +
+          '</button>' +
+          '<div id="modelDetail-' + idx + '" style="display:none;margin:4px 0 8px 0">' +
+            '<div class="model-detail-grid">' +
+              '<div class="stat-card"><div class="label">&#128230; ' + STR.totalTokens + '</div><div class="value">' + fmtTokens(ms.tokens) + '</div></div>' +
+              '<div class="stat-card"><div class="label">&#128176; ' + STR.totalCost + '</div><div class="value cost">' + fmtCost(ms.cost) + '</div></div>' +
+              '<div class="stat-card"><div class="label">&#128229; ' + STR.totalInput + '</div><div class="value">' + fmtTokens(ms.inputTokens) + '</div></div>' +
+              '<div class="stat-card"><div class="label">&#9989; ' + STR.cacheHits + '</div><div class="value">' + fmtTokens(ms.cacheHits) + '</div></div>' +
+              '<div class="stat-card"><div class="label">&#10060; ' + STR.cacheMiss + '</div><div class="value">' + fmtTokens(ms.cacheMiss) + '</div></div>' +
+              '<div class="stat-card"><div class="label">&#128200; ' + STR.hitRate + '</div><div class="value">' + hitRate + '</div></div>' +
+              '<div class="stat-card"><div class="label">&#128228; ' + STR.output + '</div><div class="value">' + fmtTokens(ms.outputTokens) + '</div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
       }).join('') + '</div>';
   }
 
@@ -279,12 +311,14 @@ function renderFull(s, thinkingTime) {
       '<div class="meta">' + STR.lastModel + ': ' + esc(s.model) + ' | ' + s.messageCount + ' ' + STR.messagesCount + '</div>' +
     '</div>' +
     '<div class="stats-grid">' +
-      '<div class="stat-card"><div class="label">' + STR.totalTokens + '</div><div class="value">' + fmtTokens(s.totalTokens) + '</div></div>' +
-      '<div class="stat-card"><div class="label">' + STR.totalCost + '</div><div class="value cost">' + fmtCost(s.cumulativeCostCNY) + '</div></div>' +
-      '<div class="stat-card"><div class="label">' + STR.totalInput + '</div><div class="value">' + fmtTokens(s.cumulativeInputTokens + s.cumulativeCacheReadTokens) + '</div></div>' +
-      '<div class="stat-card"><div class="label">' + STR.cacheHits + '</div><div class="value">' + fmtTokens(s.cumulativeCacheReadTokens) + '</div></div>' +
-      '<div class="stat-card"><div class="label">' + STR.outputTokens + '</div><div class="value">' + fmtTokens(s.cumulativeOutputTokens) + '</div></div>' +
-      '<div class="stat-card"><div class="label">' + STR.lastThinkTime + '</div><div class="value">' + fmtThink(thinkingTime) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128230; ' + STR.totalTokens + '</div><div class="value">' + fmtTokens(s.totalTokens) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128176; ' + STR.totalCost + '</div><div class="value cost">' + fmtCost(s.cumulativeCostCNY) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128229; ' + STR.totalInput + '</div><div class="value">' + fmtTokens(cumInput) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#9989; ' + STR.cacheHits + '</div><div class="value">' + fmtTokens(s.cumulativeCacheReadTokens) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#10060; ' + STR.cacheMiss + '</div><div class="value">' + fmtTokens(s.cumulativeInputTokens) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128200; ' + STR.hitRate + '</div><div class="value">' + cumHitRate + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128228; ' + STR.outputTokens + '</div><div class="value">' + fmtTokens(s.cumulativeOutputTokens) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#9201; ' + STR.lastThinkTime + '</div><div class="value">' + fmtThink(thinkingTime) + '</div></div>' +
     '</div>' + modelStatsHtml +
     '<div class="table-container"><table>' +
       '<thead><tr><th>#</th><th>' + STR.type + '</th><th>' + STR.modelLabel + '</th><th>' + STR.totalInput + '</th><th>' + STR.cacheHits + '</th><th>' + STR.cacheMiss + '</th><th>' + STR.output + '</th><th>' + STR.hitRate + '</th><th>' + STR.cost + '</th><th>' + STR.thinking + '</th></tr></thead>' +
@@ -314,8 +348,16 @@ function renderFull(s, thinkingTime) {
     '</div>';
 
   document.getElementById('app').innerHTML = html;
-  var container = document.querySelector('.table-container');
-  if (container) container.scrollTop = container.scrollHeight;
+
+  // Restore expanded model details
+  for (var j = 0; j < expandedModels.length; j++) {
+    var el2 = document.getElementById('modelDetail-' + expandedModels[j]);
+    if (el2) el2.style.display = 'block';
+  }
+
+  // Table: always scroll to bottom on refresh (unless paused, which skips renderFull entirely)
+  var container2 = document.querySelector('.table-container');
+  if (container2) container2.scrollTop = container2.scrollHeight;
 }
 </script>
 </body>
