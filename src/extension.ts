@@ -10,14 +10,16 @@ import {
   calculateCost, normalizeModelName, formatCost, abbreviateTokens,
   resolvePricing, convertCurrency,
 } from './model/CostCalculator';
-import { claudeDir, tokenMonitorDir } from './utils/paths';
-import type { PerMessageStats, SessionPidFile, ClaudeReadableData } from './model/types';
+import { claudeDir, tokenMonitorDir, tokenTrackerDir } from './utils/paths';
+import type { PerMessageStats, SessionPidFile, ClaudeReadableData, TimeRange, AggregatedData, SessionIndexEntry, ModelStatEntry } from './model/types';
 import { DetailPanel } from './ui/DetailPanel';
+import type { PanelData } from './ui/DetailPanel';
 import { t, initI18n, isRTL } from './i18n/index';
 import { getConfig } from './config/settings';
 import { checkForUpdates } from './model/pricing-fetcher';
 import { getRatesUpdatedAt } from './model/pricing';
 import type { ExtensionConfig } from './model/types';
+import * as SessionStore from './data/SessionStore';
 
 // ─── Globals ──────────────────────────────────────────────────
 let statusBarItem: vscode.StatusBarItem;
@@ -349,6 +351,8 @@ function poll(): void {
         updateStatusBar();
         writeClaudeReadable();
         pushToWebview();
+        // Persist current session summary to the index
+        upsertCurrentToIndex(active.cwd);
       }
     } else {
       updateStatusBar();
@@ -465,7 +469,47 @@ function costInDisplayCurrency(nativeCost: number, targetCurrency: string): numb
   return convertCurrency(nativeCost, pricing.currency, targetCurrency as any);
 }
 
+/** Save the current in-memory session state to the persistent index. */
+function upsertCurrentToIndex(cwd: string): void {
+  if (!currentSessionId || messageCount === 0) return;
+  const primaryModel = computePrimaryModel();
+  SessionStore.upsertSession(currentSessionId, {
+    sessionId: currentSessionId,
+    title: currentTitle || currentSessionId.slice(0, 8) + '...',
+    cwd,
+    startedAt: messages.length > 0 ? new Date(messages[0].timestamp).getTime() : Date.now(),
+    lastUpdatedAt: Date.now(),
+    messageCount,
+    totalInputTokens: cumulativeInput,          // cache-miss only, consistent with parseTranscriptFile
+    totalOutputTokens: cumulativeOutput,
+    totalCacheHitTokens: cumulativeCacheRead,
+    totalCacheMissTokens: 0,                    // redundant with totalInputTokens; kept for schema compat
+    totalCostCNY: cumulativeCost,
+    primaryModel,
+  });
+}
+
+function computePrimaryModel(): string {
+  const counts = new Map<string, number>();
+  for (const m of messages) {
+    if (!m.isUserMessage && m.model) {
+      counts.set(m.model, (counts.get(m.model) || 0) + 1);
+    }
+  }
+  let best = 'unknown';
+  let bestCount = 0;
+  for (const [model, count] of counts) {
+    if (count > bestCount) { bestCount = count; best = model; }
+  }
+  return best;
+}
+
 function resetState(): void {
+  // Save old session to index before resetting
+  if (currentSessionId && messageCount > 0) {
+    const cwd = ''; // We don't have cwd handy here, which is fine — the session
+    // is already indexed from the last poll upsert
+  }
   currentSessionId = ''; currentTitle = ''; currentModel = 'unknown';
   cumulativeInput = 0; cumulativeOutput = 0; cumulativeCacheRead = 0; cumulativeCost = 0;
   messageCount = 0; messages = []; lastFileSize = 0; lastTranscriptPath = '';
@@ -537,7 +581,220 @@ function writeClaudeReadable(): void {
   try { fs.writeFileSync(path.join(tokenMonitorDir(), 'current-session.json'), JSON.stringify(data, null, 2), 'utf-8'); } catch { /* */ }
 }
 
-// ─── Webview ──────────────────────────────────────────────────
+// ─── Webview filter handlers (v0.12.0) ─────────────────────────
+
+function handleSetTimeRange(timeRange: TimeRange, postMsg?: (msg: any) => void): void {
+  const now = Date.now();
+  let startMs = 0;
+  const d = new Date();
+
+  switch (timeRange) {
+    case 'daily':
+      d.setHours(0, 0, 0, 0);
+      startMs = d.getTime();
+      break;
+    case 'weekly': {
+      const dayOfWeek = d.getDay();
+      const diff = d.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Monday start
+      d.setDate(diff);
+      d.setHours(0, 0, 0, 0);
+      startMs = d.getTime();
+      break;
+    }
+    case 'monthly':
+      d.setDate(1);
+      d.setHours(0, 0, 0, 0);
+      startMs = d.getTime();
+      break;
+    case 'yearly':
+      d.setMonth(0, 1);
+      d.setHours(0, 0, 0, 0);
+      startMs = d.getTime();
+      break;
+    case 'all':
+      startMs = 0;
+      break;
+    default:
+      // 'current' — handled client-side with existing fullUpdate data
+      return;
+  }
+
+  const sessions = SessionStore.getSessionsInRange(startMs, now);
+  const agg = buildAggregatedData(timeRange, sessions, now);
+
+  if (postMsg) {
+    postMsg({
+      type: 'aggregatedData',
+      data: agg,
+      lang: currentConfig.resolvedLanguage,
+      currency: currentConfig.resolvedCurrency,
+    });
+  } else {
+    detailPanel.pushAggregatedData(agg);
+  }
+}
+
+function handleSelectSession(sessionId: string, postMsg?: (msg: any) => void): void {
+  // Find the session in the index
+  const entry = SessionStore.getAllSessions().find(s => s.sessionId === sessionId);
+  if (!entry) return;
+
+  // Parse the transcript and build PanelData
+  const tp = path.join(claudeDir(), 'projects', encodeProjectPath(entry.cwd), sessionId + '.jsonl');
+  if (!fs.existsSync(tp)) return;
+
+  const msgs = parseFullTranscript(tp);
+  const totalTokens = msgs.reduce((sum, m) => sum + (m.isUserMessage ? 0 : m.inputTokens + m.outputTokens + m.cacheReadTokens), 0);
+  const totalCost = msgs.reduce((sum, m) => sum + (m.isUserMessage ? 0 : m.costCNY), 0);
+  const displayCost = costInDisplayCurrency(totalCost, currentConfig.resolvedCurrency);
+  const lastAsst = findLast(msgs, m => !m.isUserMessage);
+  const modelStats = buildModelStatsFromMessages(msgs);
+
+  const sessionData: PanelData = {
+    sessionId,
+    title: entry.title,
+    model: entry.primaryModel,
+    isActive: false,
+    cumulativeInputTokens: entry.totalCacheMissTokens + entry.totalInputTokens,
+    cumulativeOutputTokens: entry.totalOutputTokens,
+    cumulativeCacheReadTokens: entry.totalCacheHitTokens,
+    cumulativeCostCNY: displayCost,
+    totalTokens,
+    messageCount: entry.messageCount,
+    messages: msgs.slice(-200),
+    lastUpdatedAt: new Date(entry.lastUpdatedAt).toISOString(),
+    thinkingTime: lastAsst?.thinkingTimeMs ?? null,
+    lang: currentConfig.resolvedLanguage,
+    currency: currentConfig.resolvedCurrency,
+    pollIntervalMs: currentConfig.pollIntervalMs,
+    modelStats,
+  };
+
+  if (postMsg) {
+    postMsg({
+      type: 'sessionDetail',
+      session: sessionData,
+      thinkingTime: sessionData.thinkingTime,
+      lang: sessionData.lang || 'en',
+      currency: sessionData.currency || 'USD',
+    });
+  } else {
+    detailPanel.pushSessionDetail(sessionData);
+  }
+}
+
+function handleClearSessionSelection(): void {
+  // Return to current session view — just push the latest data
+  pushToWebview();
+}
+
+/** Build AggregatedData from a list of SessionIndexEntry. */
+function buildAggregatedData(timeRange: TimeRange, sessions: SessionIndexEntry[], now: number): AggregatedData {
+  let totalTokens = 0, totalCostCNY = 0, inputTokens = 0, outputTokens = 0,
+    cacheHits = 0, cacheMiss = 0, messageCount = 0;
+
+  for (const s of sessions) {
+    // totalInputTokens = cache-miss, totalCacheHitTokens = cache-hit, totalOutputTokens = output
+    // totalCacheMissTokens is deprecated (always 0, redundant with totalInputTokens)
+    totalTokens += s.totalInputTokens + s.totalOutputTokens + s.totalCacheHitTokens;
+    totalCostCNY += s.totalCostCNY;
+    inputTokens += s.totalInputTokens + s.totalCacheHitTokens;
+    outputTokens += s.totalOutputTokens;
+    cacheHits += s.totalCacheHitTokens;
+    cacheMiss += s.totalInputTokens;
+    messageCount += s.messageCount;
+  }
+
+  const totalInput = inputTokens;
+  const hitRate = totalInput > 0 ? (cacheHits / totalInput * 100) : 0;
+  const displayCost = costInDisplayCurrency(totalCostCNY, currentConfig.resolvedCurrency);
+  const modelStats = SessionStore.aggregateModelStats(sessions);
+
+  return {
+    timeRange,
+    sessions,
+    totalTokens,
+    totalCost: displayCost,
+    totalCostCNY,
+    inputTokens,
+    outputTokens,
+    cacheHits,
+    cacheMiss,
+    hitRate: Math.round(hitRate * 10) / 10,
+    messageCount,
+    sessionCount: sessions.length,
+    modelStats,
+  };
+}
+
+/** Parse an entire transcript file into PerMessageStats[]. */
+function parseFullTranscript(filePath: string): PerMessageStats[] {
+  const result: PerMessageStats[] = [];
+  let raw: string;
+  try { raw = fs.readFileSync(filePath, 'utf-8'); } catch { return result; }
+
+  const seenIds = new Set<string>();
+  let pendingTs: number | null = null;
+
+  for (const line of raw.split('\n')) {
+    if (!line.trim()) continue;
+    const event = parseLine(line);
+    if (!event) continue;
+
+    if (event.type === 'user') {
+      result.push({
+        uuid: event.uuid, timestamp: event.timestamp, isUserMessage: true,
+        inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheCreationTokens: 0,
+        model: '', costCNY: 0, thinkingTimeMs: null,
+      });
+      pendingTs = new Date(event.timestamp).getTime();
+    }
+
+    if (event.type === 'assistant' && event.usage) {
+      if (seenIds.has(event.uuid)) continue;
+      seenIds.add(event.uuid);
+
+      const model = normalizeModelName(event.model || 'unknown');
+      const cost = calculateCost(event.model || 'unknown', event.usage.input_tokens, event.usage.cache_read_input_tokens, event.usage.output_tokens);
+
+      let thinkTime: number | null = null;
+      if (pendingTs !== null) {
+        thinkTime = new Date(event.timestamp).getTime() - pendingTs;
+        pendingTs = null;
+      }
+
+      result.push({
+        uuid: event.uuid, timestamp: event.timestamp, isUserMessage: false,
+        inputTokens: event.usage.input_tokens, outputTokens: event.usage.output_tokens,
+        cacheReadTokens: event.usage.cache_read_input_tokens, cacheCreationTokens: event.usage.cache_creation_input_tokens,
+        model, costCNY: cost, thinkingTimeMs: thinkTime,
+      });
+    }
+  }
+
+  return result;
+}
+
+/** Build model stats from a PerMessageStats array (for session detail views). */
+function buildModelStatsFromMessages(msgs: PerMessageStats[]): ModelStatEntry[] {
+  const map = new Map<string, { cost: number; tokens: number; inputTokens: number; cacheHits: number; cacheMiss: number; outputTokens: number }>();
+  for (const m of msgs) {
+    if (m.isUserMessage) continue;
+    const model = m.model;
+    if (!model || model === 'unknown' || model === '<synthetic>' || model.startsWith('<')) continue;
+    const entry = map.get(model) || { cost: 0, tokens: 0, inputTokens: 0, cacheHits: 0, cacheMiss: 0, outputTokens: 0 };
+    const displayCost = costInDisplayCurrency(m.costCNY, currentConfig.resolvedCurrency);
+    entry.cost += displayCost;
+    entry.inputTokens += m.inputTokens + m.cacheReadTokens;
+    entry.cacheHits += m.cacheReadTokens;
+    entry.cacheMiss += m.inputTokens;
+    entry.outputTokens += m.outputTokens;
+    entry.tokens += m.inputTokens + m.cacheReadTokens + m.outputTokens;
+    map.set(model, entry);
+  }
+  return Array.from(map.entries()).map(([model, v]) => ({ model, ...v }));
+}
+
 function buildModelStats(): Array<{ model: string; cost: number; tokens: number; inputTokens: number; cacheHits: number; cacheMiss: number; outputTokens: number }> {
   const map = new Map<string, { cost: number; tokens: number; inputTokens: number; cacheHits: number; cacheMiss: number; outputTokens: number }>();
   for (const m of messages) {
@@ -576,6 +833,7 @@ function pushToWebview(): void {
     currency: currency,
     pollIntervalMs: currentConfig.pollIntervalMs,
     modelStats: buildModelStats(),
+    sessionList: SessionStore.getSessionList(),
   } as any);
 }
 
@@ -604,6 +862,10 @@ function pushToWebviewPanel(panel: vscode.WebviewPanel): void {
       modelStats: buildModelStats(),
     },
   });
+  // Also push session list for the dropdown
+  try {
+    panel.webview.postMessage({ type: 'sessionList', sessions: SessionStore.getSessionList() });
+  } catch { /* */ }
 }
 
 // ─── Tab switch handler (v0.3.0 event-driven) ──
@@ -752,10 +1014,21 @@ export function activate(context: vscode.ExtensionContext): void {
   currentConfig = getConfig();
   initI18n(currentConfig.language, context.extensionPath);
 
+  // Async: scan and index existing session transcripts for cross-session views
+  setTimeout(() => {
+    try {
+      // Force clean rebuild: delete any previous index that may have inflated/buggy data
+      const indexPath = path.join(tokenTrackerDir(), 'sessions.json');
+      try { fs.unlinkSync(indexPath); } catch { /* doesn't exist yet */ }
+      SessionStore.scanAndIndex();
+      console.log('[TokenMonitor] Session index rebuilt (' + Object.keys(SessionStore.loadIndex().sessions).length + ' sessions)');
+    } catch (err) { console.error('[TokenMonitor] scanAndIndex error:', err); }
+  }, 800);
+
   // Async: check for pricing/rates updates (non-blocking)
   checkForUpdates(currentConfig.pricingUpdateUrl || undefined);
 
-  console.log(`[TokenMonitor] v0.10.2 activating (${currentConfig.resolvedLanguage}/${currentConfig.resolvedCurrency})...`);
+  console.log(`[TokenMonitor] v0.12.2 activating (${currentConfig.resolvedLanguage}/${currentConfig.resolvedCurrency})...`);
 
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   statusBarItem.name = 'Claude Code Token Monitor';
@@ -771,6 +1044,11 @@ export function activate(context: vscode.ExtensionContext): void {
     currency: currentConfig.resolvedCurrency,
     isRTL: isRTL(),
   }));
+  detailPanel.setFilterMessageHandler((msg) => {
+    if (msg.type === 'setTimeRange') handleSetTimeRange(msg.timeRange as TimeRange);
+    else if (msg.type === 'selectSession') handleSelectSession(msg.sessionId!);
+    else if (msg.type === 'clearSessionSelection') handleClearSessionSelection();
+  });
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider('claudeCodeTokenMonitor.detailPanel', detailPanel, { webviewOptions: { retainContextWhenHidden: true } })
   );
@@ -794,8 +1072,19 @@ export function activate(context: vscode.ExtensionContext): void {
       panel.webview.onDidReceiveMessage((msg) => {
         if (msg.type === 'ready') {
           pushToWebviewPanel(panel);
+          // Push session list for the dropdown
+          try {
+            panel.webview.postMessage({ type: 'sessionList', sessions: SessionStore.getSessionList() });
+          } catch { /* */ }
         } else if (msg.type === 'openSettings') {
           vscode.commands.executeCommand('workbench.action.openSettings', '@ext:local.claude-code-token-monitor');
+        } else if (msg.type === 'setTimeRange') {
+          handleSetTimeRange(msg.timeRange as TimeRange, panel.webview.postMessage.bind(panel.webview));
+        } else if (msg.type === 'selectSession') {
+          handleSelectSession(msg.sessionId!, panel.webview.postMessage.bind(panel.webview));
+        } else if (msg.type === 'clearSessionSelection') {
+          handleClearSessionSelection();
+          pushToWebviewPanel(panel);
         }
       });
       // Also push immediately

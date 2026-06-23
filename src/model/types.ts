@@ -181,3 +181,82 @@ export interface ProviderMeta {
   models: Record<string, ModelPricing>;
   matchPattern: RegExp;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// Session index & aggregation types (v0.12.0)
+// ═══════════════════════════════════════════════════════════════
+
+/** Time range for filtering/aggregating sessions */
+export type TimeRange = 'current' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'all';
+
+/** A lightweight summary of one session, persisted in sessions.json */
+export interface SessionIndexEntry {
+  sessionId: string;
+  title: string;
+  cwd: string;
+  startedAt: number;       // epoch ms — first message timestamp
+  lastUpdatedAt: number;   // epoch ms — last message timestamp
+  messageCount: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalCacheHitTokens: number;
+  totalCacheMissTokens: number;
+  totalCostCNY: number;
+  primaryModel: string;    // most-used model in this session
+}
+
+/** Full session index persisted to ~/.claude/token-tracker/sessions.json */
+export interface SessionIndex {
+  version: number;
+  updatedAt: number;         // epoch ms — last write time
+  sessions: Record<string, SessionIndexEntry>;  // keyed by sessionId
+}
+
+/** Aggregated stats for a time-range view, sent to the webview */
+export interface AggregatedData {
+  timeRange: TimeRange;
+  sessions: SessionIndexEntry[];
+  totalTokens: number;
+  totalCost: number;         // in display currency
+  totalCostCNY: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheHits: number;
+  cacheMiss: number;
+  hitRate: number;           // 0–100
+  messageCount: number;
+  sessionCount: number;
+  /** Per-model breakdown across the time range */
+  modelStats: ModelStatEntry[];
+}
+
+/** Per-model stats used in both live and aggregated views */
+export interface ModelStatEntry {
+  model: string;
+  cost: number;
+  tokens: number;
+  inputTokens: number;
+  cacheHits: number;
+  cacheMiss: number;
+  outputTokens: number;
+}
+
+/** Message from webview to extension requesting filtered data */
+export interface WebviewFilterMessage {
+  type: 'setTimeRange';
+  timeRange: TimeRange;
+}
+
+export interface WebviewSelectSessionMessage {
+  type: 'selectSession';
+  sessionId: string;
+}
+
+export interface WebviewClearSessionMessage {
+  type: 'clearSessionSelection';
+}
+
+export type WebviewRequest =
+  | WebviewFilterMessage
+  | WebviewSelectSessionMessage
+  | WebviewClearSessionMessage;

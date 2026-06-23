@@ -9,4 +9,5 @@ export {
   abbreviateTokens,
   resolvePricing,
   convertCurrency,
+  setCustomProviders,
 } from './pricing';

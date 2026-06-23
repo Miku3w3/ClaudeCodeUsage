@@ -169,8 +169,8 @@ export function resolveCurrency(currencySetting: string, language: string): Curr
 
 export function normalizeModelName(raw: string): string {
   return raw
-    .replace(/\[.*?\]/g, '')   // Remove [1m] and similar
-    .replace(/-free$/, '')      // Remove -free suffix
+    .replace(/\[.*?\]/g, '')   // Remove [1m] and similar ANSI codes
+    .replace(/-free$/i, '')    // Normalize free-tier model names for display
     .trim();
 }
 
@@ -216,6 +216,20 @@ export function resolvePricing(
     } catch { /* invalid regex — skip */ }
   }
 
+  // 1.5 Check remote custom providers (auto-updated from GitHub)
+  if (customProviders) {
+    for (const p of customProviders) {
+      const model = p.models[normalizedLower] || p.models[normalized];
+      if (model) {
+        return { ...model, currency: p.nativeCurrency, providerName: p.name };
+      }
+      // Also try matchPattern for partial matches
+      if (p.matchPattern.test(normalizedLower)) {
+        return { ...p.models[Object.keys(p.models)[0]], currency: p.nativeCurrency, providerName: p.name };
+      }
+    }
+  }
+
   // 2. Built-in exact match
   for (const p of PROVIDERS) {
     const model = p.models[normalizedLower] || p.models[normalized];
@@ -254,6 +268,13 @@ export function setCustomRates(rates: Record<string, number>, updatedAt?: number
   if (updatedAt) ratesUpdatedAt = updatedAt;
 }
 export function getRatesUpdatedAt(): number { return ratesUpdatedAt; }
+
+// Remote model pricing — overrides built-in PROVIDERS when set
+let customProviders: ProviderMeta[] | null = null;
+export function setCustomProviders(providers: ProviderMeta[] | null): void {
+  customProviders = providers;
+}
+export function getCustomProviders(): ProviderMeta[] | null { return customProviders; }
 
 function getRate(code: string): number {
   if (customRates[code] !== undefined) return customRates[code];

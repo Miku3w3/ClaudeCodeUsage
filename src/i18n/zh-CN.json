@@ -32,6 +32,18 @@
   "panel.pauseRefresh": "暂停",
   "panel.resumeRefresh": "继续",
 
+  "panel.filter.currentSession": "当前会话",
+  "panel.filter.daily": "每天",
+  "panel.filter.weekly": "每周",
+  "panel.filter.monthly": "每月",
+  "panel.filter.yearly": "每年",
+  "panel.filter.all": "所有",
+  "panel.filter.selectSession": "会话选择",
+  "panel.filter.byModel": "按模型",
+  "panel.filter.allSessions": "所有会话",
+  "panel.aggregate.sessionsCount": "{0} 个会话",
+  "panel.aggregate.noSessions": "暂无历史会话",
+
   "tooltip.model": "模型",
   "tooltip.session": "会话",
   "tooltip.lastModel": "上条信息选用模型",

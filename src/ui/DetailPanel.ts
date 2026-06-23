@@ -1,7 +1,7 @@
 // DetailPanel — VSCode WebviewView provider for the token usage panel.
-// v1.0.0: Internationalized. All UI strings come from the i18n engine.
+// v0.12.0: Filter bar with time range + session selection + by-model grouping.
 import * as vscode from 'vscode';
-import type { PerMessageStats } from '../model/types';
+import type { PerMessageStats, AggregatedData, SessionIndexEntry, ModelStatEntry } from '../model/types';
 
 export interface PanelData {
   sessionId: string;
@@ -20,6 +20,8 @@ export interface PanelData {
   lang?: string;
   currency?: string;
   pollIntervalMs?: number;
+  /** Per-model breakdown (always present from v0.12.0) */
+  modelStats?: ModelStatEntry[];
 }
 
 export type I18nProvider = () => {
@@ -29,13 +31,21 @@ export type I18nProvider = () => {
   isRTL: boolean;
 };
 
+export type FilterMessageHandler = (msg: { type: string; timeRange?: string; sessionId?: string }) => void;
+
 export class DetailPanel implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | null = null;
   private pendingData: PanelData | null = null;
   private getI18n: I18nProvider;
+  private onFilterMessage: FilterMessageHandler | null = null;
 
   constructor(getI18n: I18nProvider) {
     this.getI18n = getI18n;
+  }
+
+  /** Register a callback for filter-related messages from the webview. */
+  setFilterMessageHandler(handler: FilterMessageHandler): void {
+    this.onFilterMessage = handler;
   }
 
   /** Called by extension when language changes to rebuild the webview. */
@@ -66,6 +76,8 @@ export class DetailPanel implements vscode.WebviewViewProvider {
         this.sendToWebview(this.pendingData);
       } else if (msg.type === 'openSettings') {
         vscode.commands.executeCommand('workbench.action.openSettings', '@ext:local.claude-code-token-monitor');
+      } else if (msg.type === 'setTimeRange' || msg.type === 'selectSession' || msg.type === 'clearSessionSelection') {
+        if (this.onFilterMessage) this.onFilterMessage(msg);
       }
     });
 
@@ -89,6 +101,35 @@ export class DetailPanel implements vscode.WebviewViewProvider {
     }
   }
 
+  /** Send aggregated data for time-range views (daily/weekly/yearly/all). */
+  pushAggregatedData(data: AggregatedData): void {
+    this.view?.webview.postMessage({
+      type: 'aggregatedData',
+      data,
+      lang: this.getI18n().lang,
+      currency: this.getI18n().currency,
+    });
+  }
+
+  /** Send the list of known sessions for the dropdown. */
+  pushSessionList(sessions: Array<{ sessionId: string; title: string; startedAt: number }>): void {
+    this.view?.webview.postMessage({
+      type: 'sessionList',
+      sessions,
+    });
+  }
+
+  /** Send full detail for a selected (possibly past) session. */
+  pushSessionDetail(session: PanelData): void {
+    this.view?.webview.postMessage({
+      type: 'sessionDetail',
+      session,
+      thinkingTime: session.thinkingTime,
+      lang: session.lang || 'en',
+      currency: session.currency || 'USD',
+    });
+  }
+
   private sendToWebview(data: PanelData): void {
     this.view?.webview.postMessage({
       type: 'fullUpdate',
@@ -96,6 +137,7 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       thinkingTime: data.thinkingTime,
       lang: data.lang || 'en',
       currency: data.currency || 'USD',
+      sessionList: (data as any).sessionList || [],
     });
   }
 
@@ -131,6 +173,18 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       totalInput: t('tooltip.totalInput'),
       cacheMiss: t('tooltip.cacheMiss'),
       hitRate: t('tooltip.hitRate'),
+      // v0.12.0 filter keys
+      filterCurrent: t('panel.filter.currentSession'),
+      filterDaily: t('panel.filter.daily'),
+      filterWeekly: t('panel.filter.weekly'),
+      filterMonthly: t('panel.filter.monthly'),
+      filterYearly: t('panel.filter.yearly'),
+      filterAll: t('panel.filter.all'),
+      filterSelectSession: t('panel.filter.selectSession'),
+      filterByModel: t('panel.filter.byModel'),
+      filterAllSessions: t('panel.filter.allSessions'),
+      aggSessionsCount: t('panel.aggregate.sessionsCount'),
+      aggNoSessions: t('panel.aggregate.noSessions'),
     };
     const strJson = JSON.stringify(STR);
     const dirAttr = isRTL ? ' dir="rtl"' : '';
@@ -187,10 +241,26 @@ export class DetailPanel implements vscode.WebviewViewProvider {
   .model-btn:hover { background: var(--accent2); color: #fff; }
   .model-detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
   .model-detail-grid .stat-card .value { font-size: 12px; }
+  /* v0.12.0 filter bar */
+  .filter-bar { margin-bottom: 10px; }
+  .filter-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+  .filter-tab { background: var(--card-bg); border: 1px solid var(--border); color: var(--fg); padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: var(--font); line-height: 16px; }
+  .filter-tab:hover { border-color: var(--accent2); }
+  .filter-tab.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+  .filter-secondary { display: flex; gap: 8px; align-items: center; font-size: 11px; }
+  .filter-select { background: var(--card-bg); border: 1px solid var(--border); color: var(--fg); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: var(--font); cursor: pointer; }
+  .filter-select option { background: var(--bg); color: var(--fg); padding: 4px 8px; }
+  .filter-select:focus { outline: 1px solid var(--accent2); }
+  .filter-toggle { display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--muted); user-select: none; }
+  .filter-toggle.checked { color: var(--accent2); }
+  .filter-toggle input { margin: 0; cursor: pointer; }
+  .session-summary-row { cursor: pointer; }
+  .session-summary-row:hover td { background: var(--card-bg); }
 </style>
 </head>
 <body>
 <button class="settings-btn" onclick="openSettings()" title="Open extension settings">&#9881; ${t('panel.settings')}</button>
+<div id="filter-bar"></div>
 <div id="app">
   <div class="idle">
     <div>${t('panel.noSession')}</div>
@@ -209,10 +279,21 @@ const CURRENCY_SYMBOLS = { CNY: '\\u00A5', USD: '$', EUR: '\\u20AC', JPY: '\\u00
 
 vscode.postMessage({ type: 'ready' });
 
+console.log('[TokenMonitor] webview loaded, STR keys:', Object.keys(STR).length);
+
 let currentLang = '${lang}';
 let currentCurrency = '${currency}';
 let currentPollMs = 2000;
 let isPaused = false;
+// v0.12.0 filter state
+let currentTimeRange = 'current';
+let isGroupByModel = false;
+let selectedSessionId = null;
+let aggregatedData = null;
+let sessionList = [];
+
+// Initialize filter bar (must be after var declarations — uses currentTimeRange, etc.)
+try { renderFilterBar(); } catch(e) { console.error('renderFilterBar error:', e); }
 
 function toggleModelDetail(idx) {
   var el = document.getElementById('modelDetail-' + idx);
@@ -228,6 +309,105 @@ function togglePause() {
   if (btn) btn.textContent = isPaused ? STR.resumeRefresh : STR.pauseRefresh;
 }
 
+function renderFilterBar() {
+  var tabs = [
+    { id: 'current', label: STR.filterCurrent },
+    { id: 'daily', label: STR.filterDaily },
+    { id: 'weekly', label: STR.filterWeekly },
+    { id: 'monthly', label: STR.filterMonthly },
+    { id: 'yearly', label: STR.filterYearly },
+    { id: 'all', label: STR.filterAll },
+  ];
+  var tabsHtml = tabs.map(function(t) {
+    var cls = 'filter-tab' + (t.id === currentTimeRange ? ' active' : '');
+    return '<button class="' + cls + '" data-tr="' + t.id + '">' + t.label + '</button>';
+  }).join('');
+  var byModelChecked = isGroupByModel ? ' checked' : '';
+  var byModelCls = 'filter-toggle' + (isGroupByModel ? ' checked' : '');
+  // One-row layout: tabs + select + checkbox all inline
+  var btnStyle = 'padding:2px 8px;font-size:11px;font-family:var(--font);border-radius:4px;cursor:pointer;background:var(--card-bg);border:1px solid var(--border);color:var(--fg);box-sizing:border-box';
+  var html = '<div class="filter-bar" style="display:flex;align-items:stretch;gap:6px;flex-wrap:wrap">' +
+    '<div class="filter-tabs" id="filterTabs" style="display:flex;gap:4px">' + tabsHtml + '</div>' +
+    '<select id="sessionSelect" class="filter-select" style="min-width:100px;' + btnStyle + '"><option value="">' + STR.filterAllSessions + '</option></select>' +
+    '<label id="byModelLabel" class="' + byModelCls + '" style="display:flex;align-items:center;gap:3px;white-space:nowrap;' + btnStyle + '">' +
+      '<input type="checkbox" id="byModelCheck" ' + byModelChecked + ' style="margin:0"> ' + STR.filterByModel +
+    '</label>' +
+  '</div>';
+  document.getElementById('filter-bar').innerHTML = html;
+  if (sessionList.length > 0) updateSessionDropdown();
+
+  // Event delegation for filter tabs
+  var tabsEl = document.getElementById('filterTabs');
+  if (tabsEl) {
+    tabsEl.onclick = function(e) {
+      var btn = e.target.closest ? e.target.closest('.filter-tab') : null;
+      if (!btn) return;
+      var tr = btn.getAttribute('data-tr');
+      if (tr) setTimeRange(tr);
+    };
+  }
+
+  // Session select onchange
+  var sel = document.getElementById('sessionSelect');
+  if (sel) {
+    sel.onchange = function() {
+      if (sel.value) selectSession(sel.value);
+      else {
+        selectedSessionId = null;
+        currentTimeRange = 'current';
+        updateFilterUI();
+        if (sessionData) renderFull(sessionData, sessionData.thinkingTime);
+      }
+    };
+  }
+
+  // By-model checkbox onchange
+  var cb = document.getElementById('byModelCheck');
+  if (cb) cb.onchange = toggleGroupByModel;
+}
+
+function updateFilterUI() {
+  // Update tab active states
+  var tabs = document.querySelectorAll('.filter-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    var tr = tabs[i].getAttribute('data-tr');
+    if (tr === currentTimeRange) tabs[i].classList.add('active');
+    else tabs[i].classList.remove('active');
+  }
+  // Update checkbox
+  var cb = document.getElementById('byModelCheck');
+  var lbl = document.getElementById('byModelLabel');
+  if (cb) cb.checked = isGroupByModel;
+  if (lbl) lbl.className = 'filter-toggle' + (isGroupByModel ? ' checked' : '');
+  // Update dropdown selection
+  var sel = document.getElementById('sessionSelect');
+  if (sel && selectedSessionId) sel.value = selectedSessionId;
+  else if (sel && !selectedSessionId && currentTimeRange === 'current') sel.value = '';
+}
+
+function setTimeRange(tr) {
+  currentTimeRange = tr;
+  selectedSessionId = null;
+  isGroupByModel = false;
+  updateFilterUI();
+  if (tr === 'current') {
+    if (sessionData) renderFull(sessionData, sessionData.thinkingTime);
+  }
+  vscode.postMessage({ type: 'setTimeRange', timeRange: tr });
+}
+function selectSession(sid) {
+  selectedSessionId = sid;
+  currentTimeRange = '';
+  updateFilterUI();
+  vscode.postMessage({ type: 'selectSession', sessionId: sid });
+}
+function toggleGroupByModel() {
+  isGroupByModel = !isGroupByModel;
+  updateFilterUI();
+  if (aggregatedData) renderAggregated(aggregatedData);
+  else if (sessionData) renderFull(sessionData, sessionData.thinkingTime);
+}
+
 function openSettings() {
   vscode.postMessage({ type: 'openSettings' });
 }
@@ -239,7 +419,27 @@ window.addEventListener('message', (e) => {
     if (msg.lang) currentLang = msg.lang;
     if (msg.currency) currentCurrency = msg.currency;
     if (msg.session.pollIntervalMs) currentPollMs = msg.session.pollIntervalMs;
-    if (!isPaused) renderFull(sessionData, msg.thinkingTime);
+    if (msg.sessionList) { sessionList = msg.sessionList; }
+    // Only render if in 'current' view (or no filter active)
+    if (!isPaused && currentTimeRange === 'current' && !selectedSessionId) {
+      aggregatedData = null;
+      renderFull(sessionData, msg.thinkingTime);
+    }
+  } else if (msg.type === 'aggregatedData' && msg.data) {
+    aggregatedData = msg.data;
+    if (msg.lang) currentLang = msg.lang;
+    if (msg.currency) currentCurrency = msg.currency;
+    if (!isPaused) renderAggregated(msg.data);
+  } else if (msg.type === 'sessionList') {
+    sessionList = msg.sessions || [];
+    updateSessionDropdown();
+  } else if (msg.type === 'sessionDetail' && msg.session) {
+    // Viewing a historical session — render as a snapshot (no live refresh)
+    if (!isPaused) {
+      aggregatedData = null;
+      currentTimeRange = '';
+      renderFull(msg.session, msg.thinkingTime);
+    }
   }
 });
 
@@ -269,6 +469,27 @@ function fmtTime(ts) {
   } catch(e) { return new Date(ts).toLocaleTimeString(); }
 }
 
+function updateSessionDropdown() {
+  var sel = document.getElementById('sessionSelect');
+  if (!sel) return;
+  // Preserve current selection before rebuilding
+  var prevVal = selectedSessionId || (sel.value || '');
+  sel.innerHTML = '<option value="">' + STR.filterAllSessions + '</option>';
+  for (var i = 0; i < sessionList.length; i++) {
+    var s = sessionList[i];
+    var d = new Date(s.startedAt);
+    var dateStr = d.toLocaleDateString(currentLang === 'zh-CN' ? 'zh-CN' : 'en-US', {month:'short',day:'numeric'});
+    var label = s.title + ' (' + dateStr + ')';
+    sel.innerHTML += '<option value="' + esc(s.sessionId) + '">' + esc(label) + '</option>';
+  }
+  // Restore selection if still valid
+  if (prevVal) {
+    for (var j = 0; j < sel.options.length; j++) {
+      if (sel.options[j].value === prevVal) { sel.value = prevVal; break; }
+    }
+  }
+}
+
 function renderFull(s, thinkingTime) {
   // Save expanded model details state
   var expandedModels = [];
@@ -280,9 +501,9 @@ function renderFull(s, thinkingTime) {
   var cumInput = s.cumulativeInputTokens + s.cumulativeCacheReadTokens;
   var cumHitRate = cumInput > 0 ? (s.cumulativeCacheReadTokens / cumInput * 100).toFixed(1) + '%' : '0%';
 
-  // Model stats (collapsible, only when multiple models used)
+  // Model stats (collapsible, only when multiple models used AND not in by-model mode)
   var modelStatsHtml = '';
-  if (s.modelStats && s.modelStats.length > 1) {
+  if (!isGroupByModel && s.modelStats && s.modelStats.length > 1) {
     modelStatsHtml = '<div style="margin-top:8px">' +
       s.modelStats.map(function(ms, idx) {
         var hitRate = ms.inputTokens > 0 ? (ms.cacheHits / ms.inputTokens * 100).toFixed(1) + '%' : '0%';
@@ -305,12 +526,28 @@ function renderFull(s, thinkingTime) {
       }).join('') + '</div>';
   }
 
-  var html =
-    '<div class="header">' +
-      '<h2>' + esc(s.title) + '</h2>' +
-      '<div class="meta">' + STR.lastModel + ': ' + esc(s.model) + ' | ' + s.messageCount + ' ' + STR.messagesCount + '</div>' +
-    '</div>' +
-    '<div class="stats-grid">' +
+  // Build stats cards — either aggregate or per-model
+  var statsHtml = '';
+  if (isGroupByModel && s.modelStats && s.modelStats.length > 0) {
+    // Per-model cards
+    statsHtml = s.modelStats.map(function(ms) {
+      var hitRate = ms.inputTokens > 0 ? (ms.cacheHits / ms.inputTokens * 100).toFixed(1) + '%' : '0%';
+      return '<div style="margin-bottom:6px">' +
+        '<div style="font-weight:600;margin-bottom:4px;color:var(--accent2);font-size:11px">' + esc(ms.model) + ' - ' + fmtCost(ms.cost) + '</div>' +
+        '<div class="model-detail-grid">' +
+          '<div class="stat-card"><div class="label">&#128230; ' + STR.totalTokens + '</div><div class="value">' + fmtTokens(ms.tokens) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#128176; ' + STR.totalCost + '</div><div class="value cost">' + fmtCost(ms.cost) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#128229; ' + STR.totalInput + '</div><div class="value">' + fmtTokens(ms.inputTokens) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#9989; ' + STR.cacheHits + '</div><div class="value">' + fmtTokens(ms.cacheHits) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#10060; ' + STR.cacheMiss + '</div><div class="value">' + fmtTokens(ms.cacheMiss) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#128200; ' + STR.hitRate + '</div><div class="value">' + hitRate + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#128228; ' + STR.output + '</div><div class="value">' + fmtTokens(ms.outputTokens) + '</div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } else {
+    // Default aggregate cards
+    statsHtml = '<div class="stats-grid">' +
       '<div class="stat-card"><div class="label">&#128230; ' + STR.totalTokens + '</div><div class="value">' + fmtTokens(s.totalTokens) + '</div></div>' +
       '<div class="stat-card"><div class="label">&#128176; ' + STR.totalCost + '</div><div class="value cost">' + fmtCost(s.cumulativeCostCNY) + '</div></div>' +
       '<div class="stat-card"><div class="label">&#128229; ' + STR.totalInput + '</div><div class="value">' + fmtTokens(cumInput) + '</div></div>' +
@@ -319,7 +556,15 @@ function renderFull(s, thinkingTime) {
       '<div class="stat-card"><div class="label">&#128200; ' + STR.hitRate + '</div><div class="value">' + cumHitRate + '</div></div>' +
       '<div class="stat-card"><div class="label">&#128228; ' + STR.outputTokens + '</div><div class="value">' + fmtTokens(s.cumulativeOutputTokens) + '</div></div>' +
       '<div class="stat-card"><div class="label">&#9201; ' + STR.lastThinkTime + '</div><div class="value">' + fmtThink(thinkingTime) + '</div></div>' +
-    '</div>' + modelStatsHtml +
+    '</div>';
+  }
+
+  var html =
+    '<div class="header">' +
+      '<h2>' + esc(s.title) + '</h2>' +
+      '<div class="meta">' + STR.lastModel + ': ' + esc(s.model) + ' | ' + s.messageCount + ' ' + STR.messagesCount + '</div>' +
+    '</div>' +
+    statsHtml + modelStatsHtml +
     '<div class="table-container"><table>' +
       '<thead><tr><th>#</th><th>' + STR.type + '</th><th>' + STR.modelLabel + '</th><th>' + STR.totalInput + '</th><th>' + STR.cacheHits + '</th><th>' + STR.cacheMiss + '</th><th>' + STR.output + '</th><th>' + STR.hitRate + '</th><th>' + STR.cost + '</th><th>' + STR.thinking + '</th></tr></thead>' +
       '<tbody>' +
@@ -358,6 +603,93 @@ function renderFull(s, thinkingTime) {
   // Table: always scroll to bottom on refresh (unless paused, which skips renderFull entirely)
   var container2 = document.querySelector('.table-container');
   if (container2) container2.scrollTop = container2.scrollHeight;
+
+  // Update filter bar state in-place
+  updateSessionDropdown();
+  updateFilterUI();
+}
+
+function renderAggregated(a) {
+  var totalInput = a.inputTokens;
+  var hitRate = totalInput > 0 ? (a.cacheHits / totalInput * 100).toFixed(1) + '%' : '0%';
+
+  // Build stats cards — either aggregate or per-model
+  var statsHtml = '';
+  if (isGroupByModel && a.modelStats && a.modelStats.length > 0) {
+    statsHtml = a.modelStats.map(function(ms) {
+      var mHitRate = ms.inputTokens > 0 ? (ms.cacheHits / ms.inputTokens * 100).toFixed(1) + '%' : '0%';
+      return '<div style="margin-bottom:6px">' +
+        '<div style="font-weight:600;margin-bottom:4px;color:var(--accent2);font-size:11px">' + esc(ms.model) + ' - ' + fmtCost(ms.cost) + '</div>' +
+        '<div class="model-detail-grid">' +
+          '<div class="stat-card"><div class="label">&#128230; ' + STR.totalTokens + '</div><div class="value">' + fmtTokens(ms.tokens) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#128176; ' + STR.totalCost + '</div><div class="value cost">' + fmtCost(ms.cost) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#128229; ' + STR.totalInput + '</div><div class="value">' + fmtTokens(ms.inputTokens) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#9989; ' + STR.cacheHits + '</div><div class="value">' + fmtTokens(ms.cacheHits) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#10060; ' + STR.cacheMiss + '</div><div class="value">' + fmtTokens(ms.cacheMiss) + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#128200; ' + STR.hitRate + '</div><div class="value">' + mHitRate + '</div></div>' +
+          '<div class="stat-card"><div class="label">&#128228; ' + STR.output + '</div><div class="value">' + fmtTokens(ms.outputTokens) + '</div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } else {
+    var sc = STR.aggSessionsCount.replace('{0}', String(a.sessionCount));
+    statsHtml = '<div class="stats-grid">' +
+      '<div class="stat-card"><div class="label">&#128230; ' + STR.totalTokens + '</div><div class="value">' + fmtTokens(a.totalTokens) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128176; ' + STR.totalCost + '</div><div class="value cost">' + fmtCost(a.totalCost) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128229; ' + STR.totalInput + '</div><div class="value">' + fmtTokens(a.inputTokens) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#9989; ' + STR.cacheHits + '</div><div class="value">' + fmtTokens(a.cacheHits) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#10060; ' + STR.cacheMiss + '</div><div class="value">' + fmtTokens(a.cacheMiss) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128200; ' + STR.hitRate + '</div><div class="value">' + hitRate + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128228; ' + STR.outputTokens + '</div><div class="value">' + fmtTokens(a.outputTokens) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#128179; ' + esc(sc) + '</div><div class="value">' + a.sessionCount + '</div></div>' +
+    '</div>';
+  }
+
+  // Session summary table
+  var headerHtml = '<div class="header"><h2>' + esc(STR.filterAllSessions) + '</h2>' +
+    '<div class="meta">' + a.sessionCount + ' ' + STR.aggSessionsCount.replace('{0}', String(a.sessionCount)) + ' | ' + a.messageCount + ' ' + STR.messagesCount + '</div></div>';
+
+  var rowsHtml = '';
+  if (a.sessions && a.sessions.length > 0) {
+    rowsHtml = a.sessions.map(function(s) {
+      var d = new Date(s.startedAt);
+      var dateStr = d.toLocaleDateString(currentLang === 'zh-CN' ? 'zh-CN' : 'en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      return '<tr class="session-summary-row" data-sid="' + esc(s.sessionId) + '" style="cursor:pointer">' +
+        '<td>' + esc(s.title) + '</td>' +
+        '<td>' + s.messageCount + '</td>' +
+        '<td>' + fmtTokens(s.totalInputTokens + s.totalOutputTokens + s.totalCacheHitTokens + s.totalCacheMissTokens) + '</td>' +
+        '<td>' + fmtCost(s.totalCostCNY) + '</td>' +
+        '<td>' + esc(s.primaryModel) + '</td>' +
+        '<td style="font-size:9px;color:var(--muted)">' + dateStr + '</td>' +
+      '</tr>';
+    }).join('');
+  } else {
+    rowsHtml = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">' + STR.aggNoSessions + '</td></tr>';
+  }
+
+  var html = headerHtml + statsHtml +
+    '<div class="table-container"><table>' +
+    '<thead><tr><th>' + (STR.filterSelectSession || 'Session') + '</th><th>' + STR.messagesCount + '</th><th>' + STR.totalTokens + '</th><th>' + STR.totalCost + '</th><th>' + STR.modelLabel + '</th><th>Time</th></tr></thead>' +
+    '<tbody>' + rowsHtml + '</tbody></table></div>' +
+    '<div class="footer">' + STR.autoRefresh.replace('{0}', String(Math.round(currentPollMs/1000))) +
+      ' <button id="pauseBtn" class="pause-btn" onclick="togglePause()">' + STR.pauseRefresh + '</button>' +
+    '</div>';
+
+  document.getElementById('app').innerHTML = html;
+  updateSessionDropdown();
+  updateFilterUI();
+
+  // Event delegation for session summary rows
+  var appEl = document.getElementById('app');
+  if (appEl) {
+    appEl.onclick = function(e) {
+      var row = e.target.closest ? e.target.closest('.session-summary-row') : null;
+      if (row) {
+        var sid = row.getAttribute('data-sid');
+        if (sid) selectSession(sid);
+      }
+    };
+  }
 }
 </script>
 </body>

@@ -10,8 +10,20 @@ import * as tls from 'tls';
 import * as fs from 'fs';
 import * as path from 'path';
 import { tokenMonitorDir } from '../utils/paths';
-import { setCustomRates, getRatesUpdatedAt, DEFAULT_RATES } from './pricing';
+import { setCustomRates, getRatesUpdatedAt, DEFAULT_RATES, setCustomProviders } from './pricing';
+import type { Currency, ProviderMeta } from './types';
 import * as vscode from 'vscode';
+
+/** Convert remote provider format (name/currency/models) to internal ProviderMeta[]. */
+function applyRemoteProviders(remote: Array<{ name: string; currency: string; models: Record<string, { cacheHit: number; cacheMiss: number; output: number }> }>): void {
+  const converted: ProviderMeta[] = remote.map(r => ({
+    name: r.name,
+    nativeCurrency: r.currency as Currency,
+    models: r.models,
+    matchPattern: new RegExp(r.name.replace(/\s+/g, ''), 'i'),
+  }));
+  setCustomProviders(converted);
+}
 
 const DEFAULT_UPDATE_URLS = [
   'https://cdn.jsdelivr.net/gh/Miku3w3/ClaudeCodeUsage@master/pricing.json',
@@ -123,13 +135,19 @@ export async function checkForUpdates(customUrl?: string, force = false): Promis
 
   if (remote) {
     try { fs.mkdirSync(path.dirname(cacheFile), { recursive: true }); fs.writeFileSync(cacheFile, JSON.stringify(remote, null, 2), 'utf-8'); } catch { /* */ }
-    if (remote.rates) { setCustomRates(remote.rates, Date.now()); return; }
+    if (remote.rates) { setCustomRates(remote.rates, Date.now()); }
+    if (remote.providers) { applyRemoteProviders(remote.providers); }
+    if (remote.rates || remote.providers) return;
   }
 
+  // Fallback: cached data
   try {
     const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
-    if (cached?.rates) { const stat = fs.statSync(cacheFile); setCustomRates(cached.rates, stat.mtimeMs); return; }
+    if (cached?.rates) { const stat = fs.statSync(cacheFile); setCustomRates(cached.rates, stat.mtimeMs); }
+    if (cached?.providers) { applyRemoteProviders(cached.providers); }
+    if (cached?.rates || cached?.providers) return;
   } catch { /* */ }
 
+  // Ultimate fallback: built-in
   if (!getRatesUpdatedAt()) { setCustomRates(DEFAULT_RATES, 1); }
 }

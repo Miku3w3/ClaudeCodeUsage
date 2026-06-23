@@ -32,6 +32,18 @@
   "panel.pauseRefresh": "Pause",
   "panel.resumeRefresh": "Resume",
 
+  "panel.filter.currentSession": "Current",
+  "panel.filter.daily": "Daily",
+  "panel.filter.weekly": "Weekly",
+  "panel.filter.monthly": "Monthly",
+  "panel.filter.yearly": "Yearly",
+  "panel.filter.all": "All",
+  "panel.filter.selectSession": "Select Session",
+  "panel.filter.byModel": "By Model",
+  "panel.filter.allSessions": "All Sessions",
+  "panel.aggregate.sessionsCount": "{0} sessions",
+  "panel.aggregate.noSessions": "No historical sessions",
+
   "tooltip.model": "Model",
   "tooltip.session": "Session",
   "tooltip.lastModel": "Last message model",
