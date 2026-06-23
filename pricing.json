@@ -1,108 +1,368 @@
 {
-  "version": 1,
-  "updatedAt": "2026-06-22",
+  "version": 2,
+  "updatedAt": "2026-06-23",
   "rates": {
-    "USD": 1.0,
-    "CNY": 7.25,
-    "EUR": 0.92,
-    "GBP": 0.79,
-    "JPY": 157.0,
-    "KRW": 1380.0
+    "USD": 1,
+    "AED": 3.6725,
+    "AFN": 64.151029,
+    "ALL": 82.417483,
+    "AMD": 368.317873,
+    "ANG": 1.79,
+    "AOA": 925.246909,
+    "ARS": 1457.3057,
+    "AUD": 1.428616,
+    "AWG": 1.79,
+    "AZN": 1.700932,
+    "BAM": 1.710208,
+    "BBD": 2,
+    "BDT": 122.610727,
+    "BGN": 1.710208,
+    "BHD": 0.376,
+    "BIF": 2993.622575,
+    "BMD": 1,
+    "BND": 1.293242,
+    "BOB": 6.924683,
+    "BRL": 5.147819,
+    "BSD": 1,
+    "BTN": 94.703873,
+    "BWP": 13.888179,
+    "BYN": 2.792275,
+    "BZD": 2,
+    "CAD": 1.415998,
+    "CDF": 2290.297242,
+    "CHF": 0.808707,
+    "CLF": 0.022836,
+    "CLP": 902.608398,
+    "CNH": 6.77666,
+    "CNY": 6.786919,
+    "COP": 3454.97182,
+    "CRC": 454.083214,
+    "CUP": 24,
+    "CVE": 96.41743,
+    "CZK": 21.155235,
+    "DJF": 177.721,
+    "DKK": 6.523748,
+    "DOP": 58.502228,
+    "DZD": 133.571627,
+    "EGP": 49.802693,
+    "ERN": 15,
+    "ETB": 159.684001,
+    "EUR": 0.874417,
+    "FJD": 2.249408,
+    "FKP": 0.755075,
+    "FOK": 6.523691,
+    "GBP": 0.755075,
+    "GEL": 2.649747,
+    "GGP": 0.755075,
+    "GHS": 11.248851,
+    "GIP": 0.755075,
+    "GMD": 74.260076,
+    "GNF": 8781.8183,
+    "GTQ": 7.632201,
+    "GYD": 209.543296,
+    "HKD": 7.839963,
+    "HNL": 26.77081,
+    "HRK": 6.588284,
+    "HTG": 130.760289,
+    "HUF": 308.023509,
+    "IDR": 17863.854807,
+    "ILS": 2.971338,
+    "IMP": 0.755075,
+    "INR": 94.704083,
+    "IQD": 1311.69904,
+    "IRR": 1259688.075815,
+    "ISK": 125.710447,
+    "JEP": 0.755075,
+    "JMD": 157.844269,
+    "JOD": 0.709,
+    "JPY": 161.607763,
+    "KES": 129.404185,
+    "KGS": 87.501878,
+    "KHR": 4051.508571,
+    "KID": 1.428615,
+    "KMF": 430.184247,
+    "KRW": 1537.592965,
+    "KWD": 0.30873,
+    "KYD": 0.833333,
+    "KZT": 486.880299,
+    "LAK": 22059.582944,
+    "LBP": 89500,
+    "LKR": 334.066811,
+    "LRD": 182.162393,
+    "LSL": 16.40172,
+    "LYD": 6.387774,
+    "MAD": 9.330885,
+    "MDL": 17.556637,
+    "MGA": 4219.3596,
+    "MKD": 53.844149,
+    "MMK": 2104.212967,
+    "MNT": 3579.018331,
+    "MOP": 8.075162,
+    "MRU": 39.983479,
+    "MUR": 47.873344,
+    "MVR": 15.449958,
+    "MWK": 1746.337368,
+    "MXN": 17.350459,
+    "MYR": 4.148464,
+    "MZN": 63.600937,
+    "NAD": 16.40172,
+    "NGN": 1365.901442,
+    "NIO": 36.830632,
+    "NOK": 9.692365,
+    "NPR": 151.526197,
+    "NZD": 1.7492,
+    "OMR": 0.384497,
+    "PAB": 1,
+    "PEN": 3.385536,
+    "PGK": 4.428049,
+    "PHP": 61.092832,
+    "PKR": 278.290431,
+    "PLN": 3.7345,
+    "PYG": 6108.345324,
+    "QAR": 3.64,
+    "RON": 4.574122,
+    "RSD": 102.533973,
+    "RUB": 74.021671,
+    "RWF": 1469.424884,
+    "SAR": 3.75,
+    "SBD": 8.025901,
+    "SCR": 14.348915,
+    "SDG": 466.134264,
+    "SEK": 9.614072,
+    "SGD": 1.293242,
+    "SHP": 0.755075,
+    "SLE": 25.141464,
+    "SLL": 25141.464105,
+    "SOS": 572.877023,
+    "SRD": 37.645323,
+    "SSP": 4717.077407,
+    "STN": 21.423181,
+    "SYP": 112.530894,
+    "SZL": 16.40172,
+    "THB": 32.938979,
+    "TJS": 9.296904,
+    "TMT": 3.503289,
+    "TND": 2.94573,
+    "TOP": 2.385718,
+    "TRY": 46.468159,
+    "TTD": 6.762178,
+    "TVD": 1.428615,
+    "TWD": 31.687184,
+    "TZS": 2615.570767,
+    "UAH": 44.946363,
+    "UGX": 3634.616416,
+    "UYU": 40.03037,
+    "UZS": 12095.166635,
+    "VES": 612.4332,
+    "VND": 26236.346503,
+    "VUV": 118.638125,
+    "WST": 2.722631,
+    "XAF": 573.578995,
+    "XCD": 2.7,
+    "XCG": 1.79,
+    "XDR": 0.736005,
+    "XOF": 573.578995,
+    "XPF": 104.345755,
+    "YER": 238.142908,
+    "ZAR": 16.401725,
+    "ZMW": 17.901089,
+    "ZWG": 26.7648,
+    "ZWL": 26.7648
   },
   "providers": [
     {
       "name": "DeepSeek",
       "currency": "CNY",
       "models": {
-        "deepseek-v4-pro":  { "cacheHit": 0.025, "cacheMiss": 3.0, "output": 6.0 },
-        "deepseek-v4-flash": { "cacheHit": 0.02,  "cacheMiss": 1.0, "output": 2.0 },
-        "deepseek-v3":       { "cacheHit": 0,     "cacheMiss": 2.0, "output": 8.0 },
-        "deepseek-r1":       { "cacheHit": 0,     "cacheMiss": 4.0, "output": 16.0 }
+        "deepseek-v4-flash": {
+          "input": {
+            "cacheHit": 0.0028,
+            "cacheMiss": 0.14
+          },
+          "output": 0.28
+        },
+        "deepseek-v4-pro": {
+          "input": {
+            "cacheHit": 0.003625,
+            "cacheMiss": 0.435
+          },
+          "output": 0.87
+        }
       }
     },
     {
       "name": "Anthropic",
       "currency": "USD",
       "models": {
-        "claude-opus-4-8":    { "cacheHit": 1.50, "cacheMiss": 15.00, "output": 75.00 },
-        "claude-sonnet-4-6":  { "cacheHit": 0.60, "cacheMiss": 6.00,  "output": 30.00 },
-        "claude-haiku-4-5":   { "cacheHit": 0.15, "cacheMiss": 1.50,  "output": 7.50 },
-        "claude-fable-5":     { "cacheHit": 0.30, "cacheMiss": 3.00,  "output": 15.00 }
+        "fable": {
+          "input": 10,
+          "output": 50,
+          "prompt_caching_write": 12.5,
+          "prompt_caching_read": 1
+        },
+        "opus": {
+          "input": 5,
+          "output": 25,
+          "prompt_caching_write": 6.25,
+          "prompt_caching_read": 0.5
+        },
+        "sonnet": {
+          "input": 3,
+          "output": 15,
+          "prompt_caching_write": 3.75,
+          "prompt_caching_read": 0.3
+        },
+        "haiku": {
+          "input": 1,
+          "output": 5,
+          "prompt_caching_write": 1.25,
+          "prompt_caching_read": 0.1
+        }
       }
     },
     {
       "name": "OpenAI",
       "currency": "USD",
       "models": {
-        "gpt-4o":             { "cacheHit": 1.25,  "cacheMiss": 2.50,  "output": 10.00 },
-        "gpt-4o-mini":        { "cacheHit": 0.075, "cacheMiss": 0.15,  "output": 0.60 },
-        "gpt-4.1":            { "cacheHit": 1.25,  "cacheMiss": 2.50,  "output": 10.00 },
-        "o1":                 { "cacheHit": 0,     "cacheMiss": 15.00, "output": 60.00 },
-        "o3-mini":            { "cacheHit": 0,     "cacheMiss": 1.10,  "output": 4.40 },
-        "o4-mini":            { "cacheHit": 0.15,  "cacheMiss": 1.10,  "output": 4.40 }
+        "gpt-4o": {
+          "input": 2.5,
+          "output": 10,
+          "cacheHit": 1.25
+        },
+        "gpt-4o-mini": {
+          "input": 0.15,
+          "output": 0.6,
+          "cacheHit": 0.075
+        },
+        "o1": {
+          "input": 15,
+          "output": 60,
+          "cacheHit": 0
+        },
+        "o1-mini": {
+          "input": 1.1,
+          "output": 4.4,
+          "cacheHit": 0.55
+        }
       }
     },
     {
       "name": "Google",
       "currency": "USD",
       "models": {
-        "gemini-2.5-pro":     { "cacheHit": 0,     "cacheMiss": 1.25,  "output": 10.00 },
-        "gemini-2.5-flash":   { "cacheHit": 0,     "cacheMiss": 0.15,  "output": 0.60 }
+        "gemini-2.5-pro": {
+          "cacheHit": 0,
+          "cacheMiss": 1.25,
+          "output": 10
+        },
+        "gemini-2.5-flash": {
+          "cacheHit": 0,
+          "cacheMiss": 0.15,
+          "output": 0.6
+        }
       }
     },
     {
       "name": "Alibaba Qwen",
       "currency": "CNY",
       "models": {
-        "qwen3.5-plus":       { "cacheHit": 0,     "cacheMiss": 0.80,  "output": 4.80 },
-        "qwen-long":          { "cacheHit": 0,     "cacheMiss": 0.50,  "output": 2.00 }
+        "qwen-turbo": 0.3,
+        "qwen-plus": 0.8,
+        "qwen-max": 2,
+        "qwen-long": 0.5,
+        "qwen3.5-plus": 0.8
       }
     },
     {
       "name": "Moonshot Kimi",
       "currency": "USD",
       "models": {
-        "kimi-k2.5":          { "cacheHit": 0.10,  "cacheMiss": 0.60,  "output": 3.00 },
-        "kimi-k2.6":          { "cacheHit": 0.16,  "cacheMiss": 0.95,  "output": 4.00 }
+        "kimi-k2.5": {
+          "cacheHit": 0.1,
+          "cacheMiss": 0.6,
+          "output": 3
+        },
+        "kimi-k2.6": {
+          "cacheHit": 0.16,
+          "cacheMiss": 0.95,
+          "output": 4
+        }
       }
     },
     {
       "name": "Zhipu GLM",
       "currency": "CNY",
       "models": {
-        "glm-4.7":            { "cacheHit": 0,     "cacheMiss": 2.00,  "output": 16.00 },
-        "glm-5":              { "cacheHit": 0,     "cacheMiss": 4.00,  "output": 18.00 }
+        "glm-4": 0.1,
+        "glm-4v": 0.1,
+        "glm-3-turbo": 0.05,
+        "glm-4-air": 0.01,
+        "glm-4-airx": 0.01,
+        "glm-4-long": 0.01,
+        "glm-4-flash": 0.001,
+        "glm-4v-flash": 0.001
       }
     },
     {
       "name": "ByteDance Doubao",
       "currency": "CNY",
       "models": {
-        "doubao-seed-1.8":    { "cacheHit": 0,     "cacheMiss": 0.80,  "output": 2.00 },
-        "doubao-seed-2.0-pro":{ "cacheHit": 0,     "cacheMiss": 3.20,  "output": 16.00 }
+        "doubao-seed-1.8": {
+          "cacheHit": 0,
+          "cacheMiss": 0.8,
+          "output": 2
+        },
+        "doubao-seed-2.0-pro": {
+          "cacheHit": 0,
+          "cacheMiss": 3.2,
+          "output": 16
+        }
       }
     },
     {
       "name": "Baidu Ernie",
       "currency": "CNY",
       "models": {
-        "ernie-4.5-turbo":    { "cacheHit": 0.20,  "cacheMiss": 0.80,  "output": 3.20 },
-        "ernie-5.1":          { "cacheHit": 0,     "cacheMiss": 4.00,  "output": 18.00 }
+        "ernie-4.0-8k": 3,
+        "ernie-4.0-8k-preview": 0.5,
+        "ernie-4.0-turbo-8k": 1,
+        "ernie-4.0-turbo-8k-preview": 0.5,
+        "ernie-3.5-8k": 0.8,
+        "ernie-3.5-8k-preview": 0.4,
+        "ernie-speed-8k": 0.1,
+        "ernie-speed-128k": 0.1,
+        "ernie-lite-8k": 0.03,
+        "ernie-tiny-8k": 0.01,
+        "ernie-char-8k": 0.02,
+        "ernie-novel-8k": 0.1,
+        "ernie-functions-8k": 0.1
       }
     },
     {
       "name": "xAI Grok",
       "currency": "USD",
       "models": {
-        "grok-4":             { "cacheHit": 0,     "cacheMiss": 2.00,  "output": 8.00 }
+        "grok-4": {
+          "cacheHit": 0,
+          "cacheMiss": 2,
+          "output": 8
+        }
       }
     },
     {
       "name": "Mistral",
       "currency": "USD",
       "models": {
-        "mistral-large":      { "cacheHit": 0,     "cacheMiss": 2.00,  "output": 6.00 },
-        "mistral-small":      { "cacheHit": 0,     "cacheMiss": 0.20,  "output": 0.60 }
+        "mistral-large": {
+          "cacheHit": 0,
+          "cacheMiss": 2,
+          "output": 6
+        },
+        "mistral-small": {
+          "cacheHit": 0,
+          "cacheMiss": 0.2,
+          "output": 0.6
+        }
       }
     }
   ]
