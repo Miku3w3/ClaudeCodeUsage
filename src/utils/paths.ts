@@ -38,7 +38,7 @@ export function tokenMonitorDir(): string {
 /**
  * Encode a Windows filesystem path to the format used in ~/.claude/projects/ subdirectory names.
  * "d:\Jobs" -> "d--Jobs"
- * "C:\Users\Administrator" -> "C--Users-Administrator"
+ * "d:\Projects" -> "d--Projects"
  * "d:\Jobs\C" -> "d--Jobs-C"
  */
 export function encodeProjectPath(cwd: string): string {

@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.0.0] — 2026-06-23
+### Added
+- Time range filters: Current / Daily / Weekly / Monthly / Yearly / All
+- Session selector dropdown with full historical session detail view
+- "By Model" toggle — regroup stats cards and summary rows by model
+- Auto-updating exchange rates from open.er-api.com (no API key required)
+- Auto-updating model pricing from GitHub CDN (11 providers, refreshed monthly via GitHub Actions)
+- Dynamic language switching — webview buttons and labels update in real-time without reload
+- 11-language UI with complete translation coverage (en, zh-CN, zh-TW, ja, ko, es, ar, pt, de, fr, ru)
+- AI-powered pricing update script with multi-engine web search for automated monthly updates
+
+### Changed
+- v0.12.2 → v1.0.0: stable release milestone
+- Filter bar: event delegation replaces inline onclick handlers for CSP compatibility
+- Pricing engine: remote providers override built-in defaults with numeric sanitization
+- Webview i18n: dynamic STR updates via message-passing instead of page reload
+
+### Fixed
+- NaN cost display caused by unsanitized AI pricing data (non-numeric values like "Free", "N/A")
+- Session dropdown reset by auto-refresh (filter bar moved outside `#app`)
+- Token double-counting in aggregated views (redundant cache-miss field removed)
+- Duplicate session count display ("7 7 个会话" → "7 个会话")
+- Privacy: removed development path from JSDoc comments
+- 21 stale .vsix files and debug scripts cleaned from repository
+
 ## [0.12.1] — 2026-06-23
 ### Added
 - Time range filters: 当前会话 (Current) / 每天 (Daily) / 每周 (Weekly) / 每月 (Monthly) / 每年 (Yearly) / 所有 (All)

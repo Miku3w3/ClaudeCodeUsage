@@ -6,3 +6,7 @@ tsconfig.json
 node_modules/.cache/**
 copy-i18n.js
 verify.js
+scripts/
+*.vsix
+media/
+webview/

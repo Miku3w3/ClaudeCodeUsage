@@ -48,5 +48,19 @@
   "rates.daysAgo": "قبل {0} يوم",
   "rates.unknown": "غير معروف",
   "rates.builtin": "بيانات مدمجة",
-  "panel.settings": "الإعدادات"
+  "panel.settings": "الإعدادات",
+  "panel.pauseRefresh": "إيقاف مؤقت",
+  "panel.resumeRefresh": "استئناف",
+  "panel.filter.currentSession": "الجلسة الحالية",
+  "panel.filter.daily": "يومي",
+  "panel.filter.weekly": "أسبوعي",
+  "panel.filter.monthly": "شهري",
+  "panel.filter.yearly": "سنوي",
+  "panel.filter.all": "الكل",
+  "panel.filter.selectSession": "اختر الجلسة",
+  "panel.filter.byModel": "حسب النموذج",
+  "panel.filter.allSessions": "جميع الجلسات",
+  "panel.aggregate.sessionsCount": "{0} جلسات",
+  "panel.aggregate.noSessions": "لا توجد جلسات سابقة",
+  "tooltip.lastModel": "نموذج آخر رسالة"
 }

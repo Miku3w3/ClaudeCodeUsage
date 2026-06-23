@@ -4,7 +4,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
 import { parseLine } from './parsers/TranscriptParser';
 import {
   calculateCost, normalizeModelName, formatCost, abbreviateTokens,
@@ -464,9 +463,12 @@ function updateStatusBar(): void {
 
 /** Convert a cost stored in the model's native currency to the display currency. */
 function costInDisplayCurrency(nativeCost: number, targetCurrency: string): number {
+  if (!Number.isFinite(nativeCost)) return 0;
+  if (!targetCurrency) return nativeCost;
   const pricing = resolvePricing(currentModel, currentConfig.customModels);
-  if (pricing.currency === targetCurrency) return nativeCost;
-  return convertCurrency(nativeCost, pricing.currency, targetCurrency as any);
+  if (!pricing?.currency || pricing.currency === targetCurrency) return nativeCost;
+  const converted = convertCurrency(nativeCost, pricing.currency, targetCurrency as any);
+  return Number.isFinite(converted) ? converted : nativeCost;
 }
 
 /** Save the current in-memory session state to the persistent index. */
@@ -515,6 +517,7 @@ function resetState(): void {
   messageCount = 0; messages = []; lastFileSize = 0; lastTranscriptPath = '';
   seenMessageIds.clear(); pendingUserTs = null; activeSessionOverride = null;
   budgetWarned = false;
+  if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
 }
 
 function findLast<T>(arr: T[], pred: (item: T) => boolean): T | null {
@@ -628,6 +631,7 @@ function handleSetTimeRange(timeRange: TimeRange, postMsg?: (msg: any) => void):
       data: agg,
       lang: currentConfig.resolvedLanguage,
       currency: currentConfig.resolvedCurrency,
+      i18n: detailPanel.getTranslations(),
     });
   } else {
     detailPanel.pushAggregatedData(agg);
@@ -677,6 +681,7 @@ function handleSelectSession(sessionId: string, postMsg?: (msg: any) => void): v
       thinkingTime: sessionData.thinkingTime,
       lang: sessionData.lang || 'en',
       currency: sessionData.currency || 'USD',
+      i18n: detailPanel.getTranslations(),
     });
   } else {
     detailPanel.pushSessionDetail(sessionData);
@@ -796,26 +801,11 @@ function buildModelStatsFromMessages(msgs: PerMessageStats[]): ModelStatEntry[] 
 }
 
 function buildModelStats(): Array<{ model: string; cost: number; tokens: number; inputTokens: number; cacheHits: number; cacheMiss: number; outputTokens: number }> {
-  const map = new Map<string, { cost: number; tokens: number; inputTokens: number; cacheHits: number; cacheMiss: number; outputTokens: number }>();
-  for (const m of messages) {
-    if (m.isUserMessage) continue;
-    const model = m.model;
-    if (!model || model === 'unknown' || model === '<synthetic>' || model.startsWith('<')) continue;
-    const entry = map.get(model) || { cost: 0, tokens: 0, inputTokens: 0, cacheHits: 0, cacheMiss: 0, outputTokens: 0 };
-    const displayCost = costInDisplayCurrency(m.costCNY, currentConfig.resolvedCurrency);
-    entry.cost += displayCost;
-    entry.inputTokens += m.inputTokens + m.cacheReadTokens;
-    entry.cacheHits += m.cacheReadTokens;
-    entry.cacheMiss += m.inputTokens;
-    entry.outputTokens += m.outputTokens;
-    entry.tokens += m.inputTokens + m.cacheReadTokens + m.outputTokens;
-    map.set(model, entry);
-  }
-  return Array.from(map.entries()).map(([model, v]) => ({ model, ...v }));
+  return buildModelStatsFromMessages(messages);
 }
 
 function pushToWebview(): void {
-  if (!detailPanel) return;
+  if (!detailPanel) { console.error('[TokenMonitor] pushToWebview: detailPanel is null'); return; }
   const totalTokens = cumulativeInput + cumulativeCacheRead + cumulativeOutput;
   const currency = currentConfig.resolvedCurrency;
   const displayCumulativeCost = costInDisplayCurrency(cumulativeCost, currency);
@@ -846,6 +836,7 @@ function pushToWebviewPanel(panel: vscode.WebviewPanel): void {
     thinkingTime: findLastThinkingTime(),
     lang: currentConfig.resolvedLanguage,
     currency: currency,
+    i18n: detailPanel.getTranslations(),
     session: {
       sessionId: currentSessionId,
       title: currentTitle || currentSessionId.slice(0, 8) + '...',

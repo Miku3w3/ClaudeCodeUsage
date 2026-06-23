@@ -280,13 +280,29 @@ export function getRatesUpdatedAt(): number { return ratesUpdatedAt; }
 // Remote model pricing — overrides built-in PROVIDERS when set
 let customProviders: ProviderMeta[] | null = null;
 export function setCustomProviders(providers: ProviderMeta[] | null): void {
-  customProviders = providers;
+  // Reject clearly invalid data (all-zero costs, empty models, etc.)
+  if (providers && providers.length > 0) {
+    const hasValidData = providers.some(p =>
+      p.models && Object.keys(p.models).length > 0 &&
+      Object.values(p.models).some(m => m.cacheMiss > 0 || m.output > 0)
+    );
+    if (hasValidData) {
+      customProviders = providers;
+      return;
+    }
+    console.warn('[TokenMonitor] Remote providers rejected: all costs are zero');
+  }
+  customProviders = null;
 }
 export function getCustomProviders(): ProviderMeta[] | null { return customProviders; }
 
 function getRate(code: string): number {
-  if (customRates[code] !== undefined) return customRates[code];
-  return DEFAULT_RATES[code] || 1.0;
+  // Always return a valid positive number — never NaN, 0, or negative
+  const fromCustom = customRates[code];
+  if (fromCustom !== undefined && fromCustom !== null && Number.isFinite(fromCustom) && fromCustom > 0) return fromCustom;
+  const fromDefault = DEFAULT_RATES[code];
+  if (fromDefault !== undefined && Number.isFinite(fromDefault) && fromDefault > 0) return fromDefault;
+  return 1.0; // ultimate fallback
 }
 
 /**

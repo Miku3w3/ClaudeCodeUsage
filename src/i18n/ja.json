@@ -48,5 +48,19 @@
   "rates.daysAgo": "{0}日前",
   "rates.unknown": "不明",
   "rates.builtin": "内蔵データ",
-  "panel.settings": "設定"
+  "panel.settings": "設定",
+  "panel.pauseRefresh": "一時停止",
+  "panel.resumeRefresh": "再開",
+  "panel.filter.currentSession": "現在のセッション",
+  "panel.filter.daily": "毎日",
+  "panel.filter.weekly": "毎週",
+  "panel.filter.monthly": "毎月",
+  "panel.filter.yearly": "毎年",
+  "panel.filter.all": "すべて",
+  "panel.filter.selectSession": "セッション選択",
+  "panel.filter.byModel": "モデル別",
+  "panel.filter.allSessions": "すべてのセッション",
+  "panel.aggregate.sessionsCount": "{0} セッション",
+  "panel.aggregate.noSessions": "履歴セッションがありません",
+  "tooltip.lastModel": "最後のメッセージのモデル"
 }

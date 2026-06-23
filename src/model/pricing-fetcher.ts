@@ -21,13 +21,26 @@ const RATE_API_URLS = [
 
 /** Convert remote provider format (name/currency/models) to internal ProviderMeta[]. */
 function applyRemoteProviders(remote: Array<{ name: string; currency: string; models: Record<string, { cacheHit: number; cacheMiss: number; output: number }> }>): void {
-  const converted: ProviderMeta[] = remote.map(r => ({
-    name: r.name,
-    nativeCurrency: r.currency as Currency,
-    models: r.models,
-    matchPattern: new RegExp(r.name.replace(/\s+/g, ''), 'i'),
-  }));
-  setCustomProviders(converted);
+  const converted: ProviderMeta[] = remote.map(r => {
+    const clean: Record<string, { cacheHit: number; cacheMiss: number; output: number }> = {};
+    for (const [model, pricing] of Object.entries(r.models || {})) {
+      const cacheHit = Number(pricing?.cacheHit);
+      const cacheMiss = Number(pricing?.cacheMiss);
+      const output = Number(pricing?.output);
+      // Skip models with obviously bad data
+      if (!Number.isFinite(cacheHit) || !Number.isFinite(cacheMiss) || !Number.isFinite(output)) continue;
+      if (cacheHit < 0 || cacheMiss < 0 || output < 0) continue;
+      if (cacheHit === 0 && cacheMiss === 0 && output === 0) continue;
+      clean[model] = { cacheHit, cacheMiss, output };
+    }
+    return {
+      name: r.name,
+      nativeCurrency: r.currency as Currency,
+      models: clean,
+      matchPattern: new RegExp(r.name.replace(/\s+/g, ''), 'i'),
+    };
+  });
+  setCustomProviders(converted.filter(p => Object.keys(p.models).length > 0));
 }
 
 const PROVIDER_URLS = [

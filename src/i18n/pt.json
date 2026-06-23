@@ -48,5 +48,19 @@
   "rates.daysAgo": "{0}d atrás",
   "rates.unknown": "Desconhecido",
   "rates.builtin": "Embutido",
-  "panel.settings": "Configurações"
+  "panel.settings": "Configurações",
+  "panel.pauseRefresh": "Pausar",
+  "panel.resumeRefresh": "Retomar",
+  "panel.filter.currentSession": "Sessão atual",
+  "panel.filter.daily": "Diário",
+  "panel.filter.weekly": "Semanal",
+  "panel.filter.monthly": "Mensal",
+  "panel.filter.yearly": "Anual",
+  "panel.filter.all": "Tudo",
+  "panel.filter.selectSession": "Selecionar sessão",
+  "panel.filter.byModel": "Por modelo",
+  "panel.filter.allSessions": "Todas as sessões",
+  "panel.aggregate.sessionsCount": "{0} sessões",
+  "panel.aggregate.noSessions": "Nenhuma sessão histórica",
+  "tooltip.lastModel": "Modelo da última mensagem"
 }

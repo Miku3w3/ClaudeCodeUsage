@@ -101,13 +101,59 @@ export class DetailPanel implements vscode.WebviewViewProvider {
     }
   }
 
+  /** Return all translatable strings as a JSON object for the webview. */
+  getTranslations(): Record<string, string> {
+    const { t } = this.getI18n();
+    return {
+      noSession: t('panel.noSession'),
+      noSessionHint: t('panel.noSessionHint'),
+      totalTokens: t('panel.totalTokens'),
+      totalCost: t('panel.totalCost'),
+      inputTokens: t('panel.inputTokens'),
+      cacheHits: t('panel.cacheHits'),
+      outputTokens: t('panel.outputTokens'),
+      lastThinkTime: t('panel.lastThinkTime'),
+      messagesCount: t('panel.messagesCount'),
+      autoRefresh: t('panel.autoRefresh'),
+      type: t('panel.type'),
+      user: t('panel.user'),
+      ai: t('panel.ai'),
+      input: t('panel.input'),
+      cache: t('panel.cache'),
+      output: t('panel.output'),
+      cost: t('panel.cost'),
+      thinking: t('panel.thinking'),
+      settings: t('panel.settings'),
+      pauseRefresh: t('panel.pauseRefresh'),
+      resumeRefresh: t('panel.resumeRefresh'),
+      lastModel: t('tooltip.lastModel'),
+      modelLabel: t('tooltip.model'),
+      totalInput: t('tooltip.totalInput'),
+      cacheMiss: t('tooltip.cacheMiss'),
+      hitRate: t('tooltip.hitRate'),
+      filterCurrent: t('panel.filter.currentSession'),
+      filterDaily: t('panel.filter.daily'),
+      filterWeekly: t('panel.filter.weekly'),
+      filterMonthly: t('panel.filter.monthly'),
+      filterYearly: t('panel.filter.yearly'),
+      filterAll: t('panel.filter.all'),
+      filterSelectSession: t('panel.filter.selectSession'),
+      filterByModel: t('panel.filter.byModel'),
+      filterAllSessions: t('panel.filter.allSessions'),
+      aggSessionsCount: t('panel.aggregate.sessionsCount'),
+      aggNoSessions: t('panel.aggregate.noSessions'),
+    };
+  }
+
   /** Send aggregated data for time-range views (daily/weekly/yearly/all). */
   pushAggregatedData(data: AggregatedData): void {
+    const i18n = this.getI18n();
     this.view?.webview.postMessage({
       type: 'aggregatedData',
       data,
-      lang: this.getI18n().lang,
-      currency: this.getI18n().currency,
+      lang: i18n.lang,
+      currency: i18n.currency,
+      i18n: this.getTranslations(),
     });
   }
 
@@ -127,6 +173,7 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       thinkingTime: session.thinkingTime,
       lang: session.lang || 'en',
       currency: session.currency || 'USD',
+      i18n: this.getTranslations(),
     });
   }
 
@@ -138,6 +185,7 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       lang: data.lang || 'en',
       currency: data.currency || 'USD',
       sessionList: (data as any).sessionList || [],
+      i18n: this.getTranslations(),
     });
   }
 
@@ -272,14 +320,12 @@ export class DetailPanel implements vscode.WebviewViewProvider {
 const vscode = acquireVsCodeApi();
 let sessionData = null;
 
-// i18n strings baked in at generation time
-const STR = ${strJson};
+// i18n strings — updated dynamically from messages when language changes
+let STR = ${strJson};
 
 const CURRENCY_SYMBOLS = { CNY: '\\u00A5', USD: '$', EUR: '\\u20AC', JPY: '\\u00A5', KRW: '\\u20A9', GBP: '\\u00A3' };
 
 vscode.postMessage({ type: 'ready' });
-
-console.log('[TokenMonitor] webview loaded, STR keys:', Object.keys(STR).length);
 
 let currentLang = '${lang}';
 let currentCurrency = '${currency}';
@@ -412,9 +458,26 @@ function openSettings() {
   vscode.postMessage({ type: 'openSettings' });
 }
 
+// Apply updated i18n strings dynamically without page reload
+function applyI18n(i18n) {
+  if (!i18n) return;
+  var changed = false;
+  for (var k in i18n) {
+    if (i18n.hasOwnProperty(k) && STR[k] !== i18n[k]) {
+      STR[k] = i18n[k];
+      changed = true;
+    }
+  }
+  if (changed) renderFilterBar();
+}
+
 window.addEventListener('message', (e) => {
   const msg = e.data;
+  if (!msg || !msg.type) return;
+  if (msg.type === 'log') { console.log('[webview]', msg.text); return; }
   if (msg.type === 'fullUpdate' && msg.session) {
+    console.log('[webview] fullUpdate received, msgs:', msg.session.messages ? msg.session.messages.length : 0);
+    applyI18n(msg.i18n);
     sessionData = msg.session;
     if (msg.lang) currentLang = msg.lang;
     if (msg.currency) currentCurrency = msg.currency;
@@ -426,6 +489,7 @@ window.addEventListener('message', (e) => {
       renderFull(sessionData, msg.thinkingTime);
     }
   } else if (msg.type === 'aggregatedData' && msg.data) {
+    applyI18n(msg.i18n);
     aggregatedData = msg.data;
     if (msg.lang) currentLang = msg.lang;
     if (msg.currency) currentCurrency = msg.currency;
@@ -434,6 +498,7 @@ window.addEventListener('message', (e) => {
     sessionList = msg.sessions || [];
     updateSessionDropdown();
   } else if (msg.type === 'sessionDetail' && msg.session) {
+    applyI18n(msg.i18n);
     // Viewing a historical session — render as a snapshot (no live refresh)
     if (!isPaused) {
       aggregatedData = null;
@@ -647,7 +712,7 @@ function renderAggregated(a) {
 
   // Session summary table
   var headerHtml = '<div class="header"><h2>' + esc(STR.filterAllSessions) + '</h2>' +
-    '<div class="meta">' + a.sessionCount + ' ' + STR.aggSessionsCount.replace('{0}', String(a.sessionCount)) + ' | ' + a.messageCount + ' ' + STR.messagesCount + '</div></div>';
+    '<div class="meta">' + STR.aggSessionsCount.replace('{0}', String(a.sessionCount)) + ' | ' + a.messageCount + ' ' + STR.messagesCount + '</div></div>';
 
   var rowsHtml = '';
   if (a.sessions && a.sessions.length > 0) {

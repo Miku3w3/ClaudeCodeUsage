@@ -48,5 +48,19 @@
   "rates.daysAgo": "{0} дн. назад",
   "rates.unknown": "Неизвестно",
   "rates.builtin": "Встроенные",
-  "panel.settings": "Настройки"
+  "panel.settings": "Настройки",
+  "panel.pauseRefresh": "Пауза",
+  "panel.resumeRefresh": "Продолжить",
+  "panel.filter.currentSession": "Текущая сессия",
+  "panel.filter.daily": "Ежедневно",
+  "panel.filter.weekly": "Еженедельно",
+  "panel.filter.monthly": "Ежемесячно",
+  "panel.filter.yearly": "Ежегодно",
+  "panel.filter.all": "Всё",
+  "panel.filter.selectSession": "Выбрать сессию",
+  "panel.filter.byModel": "По модели",
+  "panel.filter.allSessions": "Все сессии",
+  "panel.aggregate.sessionsCount": "{0} сессий",
+  "panel.aggregate.noSessions": "Нет истории сессий",
+  "tooltip.lastModel": "Модель последнего сообщения"
 }
