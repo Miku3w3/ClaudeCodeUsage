@@ -134,7 +134,7 @@ const ALL_PROVIDERS = [
     name: 'ByteDance Doubao',
     currency: 'CNY',
     urls: ['https://www.volcengine.com/docs/82379/1297666'],
-    search: '火山引擎 豆包大模型 seed 定价 每百万token 价格 CNY 2025 2026',
+    search: 'site:volcengine.com doubao seed model pricing per million tokens CNY 2026',
     prompt: 'Extract ALL Doubao model pricing from this page as JSON. Keys are lowercase model names. Use CNY per 1M tokens.',
   },
   {
