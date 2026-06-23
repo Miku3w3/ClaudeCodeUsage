@@ -1,30 +1,23 @@
-name: Update Pricing
-
+name: Auto-Update AI Model Pricing
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Every Monday at 9am UTC
-  workflow_dispatch:       # Manual trigger
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
 
 jobs:
-  check:
+  update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Validate pricing.json
-        run: |
-          node -e "
-          const p = require('./pricing.json');
-          if (!p.version || !p.providers || !p.rates) {
-            console.error('Invalid pricing.json structure');
-            process.exit(1);
-          }
-          console.log('pricing.json valid — ' + p.providers.length + ' providers, ' + Object.keys(p.rates).length + ' currencies');
-          console.log('Last updated: ' + p.updatedAt);
-          "
-
-      - name: Check for manual updates needed
-        run: |
-          echo "No automated price scraping configured yet."
-          echo "To update pricing, edit pricing.json and push directly to main."
-          echo "Or create a PR from this workflow run."
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run AI pricing updater
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/update-pricing.js
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: auto-update AI model pricing'
+          file_pattern: 'pricing.json'
