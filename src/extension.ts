@@ -988,6 +988,8 @@ function refreshConfig(): void {
   if (currentConfig.resolvedLanguage !== oldLang) {
     initI18n(currentConfig.language);
     detailPanel.refreshHtml();
+    // Delay push until webview finishes reloading (otherwise ready handler races)
+    setTimeout(() => pushToWebview(), 300);
   }
 
   // Currency change → force re-fetch pricing for fresh rates

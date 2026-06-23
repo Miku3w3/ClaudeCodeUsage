@@ -264,7 +264,15 @@ export function resolvePricing(
 let customRates: Record<string, number> = {};
 let ratesUpdatedAt = 0;
 export function setCustomRates(rates: Record<string, number>, updatedAt?: number): void {
-  customRates = rates || {};
+  // Sanitize: convert string values to numbers, filter out NaN/Infinity/null/undefined
+  const sanitized: Record<string, number> = {};
+  if (rates) {
+    for (const [k, v] of Object.entries(rates)) {
+      const n = Number(v);
+      if (Number.isFinite(n) && n > 0) sanitized[k] = n;
+    }
+  }
+  customRates = sanitized;
   if (updatedAt) ratesUpdatedAt = updatedAt;
 }
 export function getRatesUpdatedAt(): number { return ratesUpdatedAt; }
