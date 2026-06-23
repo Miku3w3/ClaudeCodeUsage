@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "updatedAt": "2026-06-23",
   "rates": {
     "USD": 1,
@@ -268,38 +268,32 @@
         "gemini-2.0-flash": {
           "input": 0.1,
           "output": 0.4,
-          "cacheHit": 0.025,
-          "cacheMiss": 0.1
+          "cacheHit": 0
         },
         "gemini-2.0-flash-lite": {
           "input": 0.075,
           "output": 0.3,
-          "cacheHit": 0.01875,
-          "cacheMiss": 0.075
+          "cacheHit": 0
         },
         "gemini-1.5-flash": {
           "input": 0.075,
           "output": 0.3,
-          "cacheHit": 0.01875,
-          "cacheMiss": 0.075
+          "cacheHit": 0
         },
         "gemini-1.5-flash-8b": {
           "input": 0.0375,
           "output": 0.15,
-          "cacheHit": 0.01,
-          "cacheMiss": 0.0375
+          "cacheHit": 0
         },
         "gemini-1.5-pro": {
           "input": 1.25,
           "output": 5,
-          "cacheHit": 0.3125,
-          "cacheMiss": 1.25
+          "cacheHit": 0
         },
-        "gemini-2.0-pro": {
-          "input": 2.5,
-          "output": 10,
-          "cacheHit": 0.625,
-          "cacheMiss": 2.5
+        "gemini-2.0-flash-thinking": {
+          "input": 0.15,
+          "output": 0.6,
+          "cacheHit": 0
         }
       }
     },
@@ -337,11 +331,11 @@
         "glm-4": 0.1,
         "glm-4v": 0.1,
         "glm-3-turbo": 0.05,
-        "glm-4-air": 0.01,
-        "glm-4-airx": 0.01,
-        "glm-4-long": 0.001,
-        "glm-4-flash": 0.001,
-        "glm-4-flashx": 0.001
+        "glm-4-air": 0.05,
+        "glm-4-airx": 0.1,
+        "glm-4-long": 0.1,
+        "glm-4-flash": 0.01,
+        "glm-4-flashx": 0.01
       }
     },
     {
@@ -364,32 +358,23 @@
       "name": "Baidu Ernie",
       "currency": "CNY",
       "models": {
-        "ernie-4.0-8k": 3,
-        "ernie-4.0-8k-preview": 0.5,
-        "ernie-4.0-turbo-8k": 1,
-        "ernie-4.0-turbo-8k-preview": 0.5,
-        "ernie-3.5-8k": 0.8,
-        "ernie-3.5-8k-preview": 0.5,
-        "ernie-speed-8k": 0.3,
-        "ernie-speed-128k": 0.5,
-        "ernie-lite-8k": 0.03,
-        "ernie-tiny-8k": 0.1,
-        "ernie-char-8k": 0.2,
-        "ernie-char-8k-preview": 0.1,
-        "ernie-novel-8k": 0.5,
-        "ernie-novel-8k-preview": 0.3,
-        "ernie-functions-8k": 0.5,
-        "ernie-functions-8k-preview": 0.3,
-        "ernie-4.0-8k-latest": 3,
-        "ernie-4.0-turbo-8k-latest": 1,
-        "ernie-3.5-8k-latest": 0.8,
-        "ernie-speed-8k-latest": 0.3,
-        "ernie-speed-128k-latest": 0.5,
-        "ernie-lite-8k-latest": 0.03,
-        "ernie-tiny-8k-latest": 0.1,
-        "ernie-char-8k-latest": 0.2,
-        "ernie-novel-8k-latest": 0.5,
-        "ernie-functions-8k-latest": 0.5
+        "ernie-4.0-8k": 0.12,
+        "ernie-4.0-8k-preview": 0.12,
+        "ernie-4.0-turbo-8k": 0.03,
+        "ernie-4.0-turbo-8k-preview": 0.03,
+        "ernie-3.5-8k": 0.012,
+        "ernie-3.5-8k-preview": 0.012,
+        "ernie-speed-8k": 0.001,
+        "ernie-speed-128k": 0.001,
+        "ernie-lite-8k": 0.0004,
+        "ernie-tiny-8k": 0.0003,
+        "ernie-char-8k": 0.002,
+        "ernie-char-8k-preview": 0.002,
+        "ernie-novel-8k": 0.004,
+        "ernie-novel-8k-preview": 0.004,
+        "ernie-functions-8k": 0.004,
+        "ernie-roleplay-8k": 0.004,
+        "ernie-voice-8k": 0.004
       }
     },
     {
@@ -406,25 +391,30 @@
       "name": "Mistral",
       "currency": "USD",
       "models": {
-        "mistral-large-2": {
+        "mistral large 2": {
           "cacheHit": 0,
           "cacheMiss": 2,
           "output": 6
         },
-        "mistral-large-3": {
+        "mistral large 3": {
           "cacheHit": 0,
           "cacheMiss": 0.5,
           "output": 1.5
         },
-        "mistral-small-3": {
+        "mistral small 3": {
           "cacheHit": 0,
           "cacheMiss": 0.1,
           "output": 0.3
         },
-        "ministral-3b": {
+        "ministral 3b": {
           "cacheHit": 0,
           "cacheMiss": 0.04,
           "output": 0.04
+        },
+        "mistral medium 3.5": {
+          "cacheHit": 0,
+          "cacheMiss": 1.5,
+          "output": 7.5
         }
       }
     }
