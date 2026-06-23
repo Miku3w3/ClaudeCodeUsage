@@ -109,49 +109,49 @@ const ALL_PROVIDERS = [
   {
     name: 'Google',
     currency: 'USD',
-    url: 'https://ai.google.dev/pricing',
+    urls: ['https://ai.google.dev/pricing', 'https://cloud.google.com/vertex-ai/generative-ai/pricing'],
     prompt: 'Extract ALL Gemini model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens. cacheHit=0 if no cache discount.',
   },
   {
     name: 'Alibaba Qwen',
     currency: 'CNY',
-    url: 'https://help.aliyun.com/zh/model-studio/getting-started/pricing',
+    urls: ['https://help.aliyun.com/zh/model-studio/getting-started/pricing'],
     prompt: 'Extract ALL Qwen model pricing from this page as JSON. Keys are lowercase model names (e.g. qwen3.5-plus, qwen-long). Use CNY per 1M tokens.',
   },
   {
     name: 'Moonshot Kimi',
     currency: 'USD',
-    url: 'https://platform.moonshot.cn/pricing',
+    urls: ['https://platform.moonshot.cn/docs/pricing', 'https://platform.moonshot.cn/pricing'],
     prompt: 'Extract ALL Kimi model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens.',
   },
   {
     name: 'Zhipu GLM',
     currency: 'CNY',
-    url: 'https://open.bigmodel.cn/pricing',
+    urls: ['https://open.bigmodel.cn/dev/api/normal-model/glm-4'],
     prompt: 'Extract ALL GLM model pricing from this page as JSON. Keys are lowercase model names. Use CNY per 1M tokens.',
   },
   {
     name: 'ByteDance Doubao',
     currency: 'CNY',
-    url: 'https://www.volcengine.com/docs/82379/1099320',
+    urls: ['https://www.volcengine.com/docs/82379/1099320', 'https://www.volcengine.com/docs/82379/1396986'],
     prompt: 'Extract ALL Doubao model pricing from this page as JSON. Keys are lowercase model names. Use CNY per 1M tokens.',
   },
   {
     name: 'Baidu Ernie',
     currency: 'CNY',
-    url: 'https://cloud.baidu.com/doc/WENXINWORKSHOP/s/hlrk4akp7',
+    urls: ['https://cloud.baidu.com/doc/WENXINWORKSHOP/s/hlrk4akp7'],
     prompt: 'Extract ALL Ernie model pricing from this page as JSON. Keys are lowercase model names. Use CNY per 1M tokens.',
   },
   {
     name: 'xAI Grok',
     currency: 'USD',
-    url: 'https://x.ai/api/pricing',
+    urls: ['https://x.ai/about/pricing', 'https://docs.x.ai/docs/pricing'],
     prompt: 'Extract ALL Grok model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens.',
   },
   {
     name: 'Mistral',
     currency: 'USD',
-    url: 'https://mistral.ai/technology/#pricing',
+    urls: ['https://mistral.ai/products/la-plateforme#pricing', 'https://docs.mistral.ai/deployment/pricing/'],
     prompt: 'Extract ALL Mistral model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens.',
   },
 ];
@@ -221,7 +221,13 @@ async function main() {
   for (const src of ALL_PROVIDERS) {
     console.log(`  ${src.name}...`);
     try {
-      const html = await fetchPage(src.url);
+      // Support both single url (string) and multiple urls (array)
+      const urls = src.urls || [src.url];
+      let html = null;
+      for (const url of urls) {
+        try { html = await fetchPage(url); if (html) break; } catch { /* try next URL */ }
+      }
+      if (!html) throw new Error('All URLs failed');
       const text = html
         .replace(/<script[\s\S]*?<\/script>/gi, '')
         .replace(/<style[\s\S]*?<\/style>/gi, '')
