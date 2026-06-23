@@ -109,7 +109,7 @@ const ALL_PROVIDERS = [
   {
     name: 'Google',
     currency: 'USD',
-    urls: ['https://ai.google.dev/pricing', 'https://cloud.google.com/vertex-ai/generative-ai/pricing'],
+    urls: ['https://ai.google.dev/pricing'],
     prompt: 'Extract ALL Gemini model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens. cacheHit=0 if no cache discount.',
   },
   {
@@ -121,19 +121,19 @@ const ALL_PROVIDERS = [
   {
     name: 'Moonshot Kimi',
     currency: 'USD',
-    urls: ['https://platform.moonshot.cn/docs/pricing', 'https://platform.moonshot.cn/pricing'],
+    urls: ['https://platform.moonshot.cn/pricing'],
     prompt: 'Extract ALL Kimi model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens.',
   },
   {
     name: 'Zhipu GLM',
     currency: 'CNY',
-    urls: ['https://open.bigmodel.cn/dev/api/normal-model/glm-4'],
+    urls: ['https://open.bigmodel.cn/pricing'],
     prompt: 'Extract ALL GLM model pricing from this page as JSON. Keys are lowercase model names. Use CNY per 1M tokens.',
   },
   {
     name: 'ByteDance Doubao',
     currency: 'CNY',
-    urls: ['https://www.volcengine.com/docs/82379/1099320', 'https://www.volcengine.com/docs/82379/1396986'],
+    urls: ['https://www.volcengine.com/docs/82379/1297666'],
     prompt: 'Extract ALL Doubao model pricing from this page as JSON. Keys are lowercase model names. Use CNY per 1M tokens.',
   },
   {
@@ -145,13 +145,13 @@ const ALL_PROVIDERS = [
   {
     name: 'xAI Grok',
     currency: 'USD',
-    urls: ['https://x.ai/about/pricing', 'https://docs.x.ai/docs/pricing'],
+    urls: ['https://x.ai/api/pricing', 'https://x.ai/pricing'],
     prompt: 'Extract ALL Grok model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens.',
   },
   {
     name: 'Mistral',
     currency: 'USD',
-    urls: ['https://mistral.ai/products/la-plateforme#pricing', 'https://docs.mistral.ai/deployment/pricing/'],
+    urls: ['https://mistral.ai/technology/', 'https://docs.mistral.ai/getting-started/pricing/'],
     prompt: 'Extract ALL Mistral model pricing from this page as JSON. Keys are lowercase model names. Use USD per 1M tokens.',
   },
 ];
