@@ -174,6 +174,30 @@ async function fetchPage(url) {
   });
 }
 
+/** Search the web for pricing info using DuckDuckGo (free, no key). */
+async function searchWeb(query) {
+  const url = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`;
+  try {
+    const html = await fetchPage(url);
+    // Extract relevant text snippets from the results page
+    const cleaned = html
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/.*?result__body|result__snippet/gi, '')
+      .trim()
+      .slice(0, 8000);
+    // Also try the instant answer API
+    const instant = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+    let instantText = '';
+    try {
+      const res = await fetchPage(instant);
+      const data = JSON.parse(res);
+      instantText = (data.AbstractText || data.Answer || '').slice(0, 2000);
+    } catch { /* ignore */ }
+    return (cleaned + ' ' + instantText).slice(0, 10000);
+  } catch { return ''; }
+}
+
 function callAI(userMessage) {
   const ai = getAIConfig();
   console.log(`  Using AI backend: ${ai.name} (${ai.model})`);
@@ -245,16 +269,21 @@ async function main() {
       } catch { /* try next URL */ }
     }
 
-    // Step 2: if scraping failed, ask AI from knowledge
+    // Step 2: if scraping failed, search the web for real-time pricing
     if (!json || Object.keys(json).length === 0) {
-      source = 'knowledge';
-      console.log('    (no page — asking AI from knowledge)');
+      source = 'search';
+      console.log('    (no page — searching the web...)');
       try {
-        json = await callAI(
-          `What are the CURRENT official model prices for ${src.name}? ` +
-          `Return ONLY a JSON object where keys are lowercase model names and values are {cacheHit, cacheMiss, output} objects with prices in ${src.currency} per 1 million tokens. ` +
-          `cacheHit=0 if the provider does not offer cache discounts. Include ALL currently available models. Do NOT invent models — only include real ones.`
-        );
+        const searchQuery = `${src.name} API model pricing per million tokens ${src.currency} ${new Date().getFullYear()}`;
+        const searchText = await searchWeb(searchQuery);
+        if (searchText.length > 50) {
+          json = await callAI(
+            `From the search results below, extract the CURRENT official ${src.name} model pricing.\n` +
+            `Return ONLY a JSON object where keys are lowercase model names and values are {cacheHit, cacheMiss, output} objects with prices in ${src.currency} per 1 million tokens.\n` +
+            `cacheHit=0 if no cache discount mentioned. Include ALL models found. Do NOT invent models.\n\n` +
+            `SEARCH RESULTS:\n${searchText}`
+          );
+        }
       } catch { /* fall through to existing */ }
     }
 
