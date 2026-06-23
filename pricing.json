@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "updatedAt": "2026-06-23",
   "rates": {
     "USD": 1,
@@ -268,14 +268,14 @@
         "gemini-2.0-flash": {
           "input": 0.1,
           "output": 0.4,
-          "cacheHit": 0.025,
-          "cacheMiss": 0.1
+          "cacheHit": 0,
+          "cacheMiss": 0
         },
         "gemini-2.0-flash-lite": {
           "input": 0.075,
           "output": 0.3,
-          "cacheHit": 0.01875,
-          "cacheMiss": 0.075
+          "cacheHit": 0,
+          "cacheMiss": 0
         },
         "gemini-1.5-flash": {
           "input": 0.075,
@@ -311,7 +311,7 @@
         "qwen-plus": 0.8,
         "qwen-max": 2,
         "qwen-long": 0.5,
-        "qwen3.5-plus": 0.8
+        "qwen3.5-plus": 1.2
       }
     },
     {
@@ -322,11 +322,6 @@
           "cacheHit": 0.16,
           "cacheMiss": 0.95,
           "output": 4
-        },
-        "k2.5": {
-          "cacheHit": 0,
-          "cacheMiss": 0.6,
-          "output": 0
         }
       }
     },
@@ -361,7 +356,7 @@
         "doubao-pro-256k": {
           "cacheHit": 2.4,
           "cacheMiss": 6,
-          "output": 18
+          "output": 16
         },
         "doubao-lite-32k": {
           "cacheHit": 0.2,
@@ -386,22 +381,25 @@
         "ernie-3.5-8k": 0.012,
         "ernie-3.5-8k-preview": 0.012,
         "ernie-speed-8k": 0.001,
-        "ernie-speed-128k": 0.004,
+        "ernie-speed-128k": 0.002,
         "ernie-lite-8k": 0.0004,
         "ernie-tiny-8k": 0.0003,
         "ernie-char-8k": 0.002,
         "ernie-char-8k-preview": 0.002,
         "ernie-novel-8k": 0.004,
-        "ernie-functions-8k": 0.002
+        "ernie-novel-8k-preview": 0.004,
+        "ernie-functions-8k": 0.002,
+        "ernie-role-8k": 0.002,
+        "ernie-role-8k-preview": 0.002
       }
     },
     {
       "name": "xAI Grok",
       "currency": "USD",
       "models": {
-        "grok": {
-          "input": 0,
-          "output": 0
+        "grok 4": {
+          "input": null,
+          "output": null
         }
       }
     },
