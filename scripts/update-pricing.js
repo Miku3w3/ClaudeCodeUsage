@@ -1,15 +1,91 @@
 /**
- * AI-powered model pricing updater — all major providers.
+ * AI-powered model pricing updater — all 11 major providers.
  *
  * Run manually:  node scripts/update-pricing.js [--dry-run]
  * Or via GitHub Actions (monthly cron).
  *
- * Requires: ANTHROPIC_API_KEY env var
+ * Requires one of: DEEPSEEK_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY
+ * (DeepSeek is cheapest — recommended)
  */
 
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+
+// ─── AI backend selection ──────────────────────────────────────
+
+function getAIConfig() {
+  const key = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error(
+    'Missing API key. Set one of:\n' +
+    '  DEEPSEEK_API_KEY  (recommended, cheapest)\n' +
+    '  OPENAI_API_KEY\n' +
+    '  ANTHROPIC_API_KEY'
+  );
+
+  if (process.env.DEEPSEEK_API_KEY) {
+    return {
+      name: 'deepseek',
+      key: process.env.DEEPSEEK_API_KEY,
+      hostname: 'api.deepseek.com',
+      path: '/v1/chat/completions',
+      model: 'deepseek-chat',
+      buildBody: (msg) => JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'system', content: 'You are a precise data extraction tool. Return ONLY valid JSON, no markdown, no explanation.' }, { role: 'user', content: msg }],
+        max_tokens: 4096,
+        temperature: 0,
+      }),
+      parseResponse: (data) => {
+        const text = JSON.parse(data).choices[0]?.message?.content || '';
+        const m = text.match(/\{[\s\S]*\}/);
+        return m ? JSON.parse(m[0]) : null;
+      },
+    };
+  }
+
+  if (process.env.OPENAI_API_KEY) {
+    return {
+      name: 'openai',
+      key: process.env.OPENAI_API_KEY,
+      hostname: 'api.openai.com',
+      path: '/v1/chat/completions',
+      model: 'gpt-4o-mini',
+      buildBody: (msg) => JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'system', content: 'You are a precise data extraction tool. Return ONLY valid JSON, no markdown, no explanation.' }, { role: 'user', content: msg }],
+        max_tokens: 4096,
+        temperature: 0,
+      }),
+      parseResponse: (data) => {
+        const text = JSON.parse(data).choices[0]?.message?.content || '';
+        const m = text.match(/\{[\s\S]*\}/);
+        return m ? JSON.parse(m[0]) : null;
+      },
+    };
+  }
+
+  // Anthropic fallback
+  return {
+    name: 'anthropic',
+    key: process.env.ANTHROPIC_API_KEY,
+    hostname: 'api.anthropic.com',
+    path: '/v1/messages',
+    model: 'claude-sonnet-4-6',
+    buildBody: (msg) => JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system: 'You are a precise data extraction tool. Return ONLY valid JSON, no markdown, no explanation.',
+      messages: [{ role: 'user', content: msg }],
+    }),
+    parseResponse: (data) => {
+      const text = JSON.parse(data).content[0]?.text || '';
+      const m = text.match(/\{[\s\S]*\}/);
+      return m ? JSON.parse(m[0]) : null;
+    },
+    headers: { 'anthropic-version': '2023-06-01' },
+  };
+}
 
 const ALL_PROVIDERS = [
   {
@@ -95,38 +171,30 @@ function fetchPage(url) {
   });
 }
 
-function callClaude(systemPrompt, userMessage) {
-  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
-  if (!apiKey) throw new Error('Missing ANTHROPIC_API_KEY env var');
-
-  const body = JSON.stringify({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userMessage }],
-  });
+function callAI(userMessage) {
+  const ai = getAIConfig();
+  console.log(`  Using AI backend: ${ai.name} (${ai.model})`);
 
   return new Promise((resolve, reject) => {
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ai.key}`, ...(ai.headers || {}) };
     const req = https.request({
-      hostname: 'api.anthropic.com', path: '/v1/messages', method: 'POST', timeout: 30000,
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      hostname: ai.hostname, path: ai.path, method: 'POST', timeout: 30000, headers,
     }, (res) => {
       let data = '';
       res.on('data', c => { data += c; });
       res.on('end', () => {
         if (res.statusCode !== 200) return reject(new Error(`API ${res.statusCode}: ${data.slice(0, 200)}`));
-        try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+        try {
+          const result = ai.parseResponse(data);
+          if (result) resolve(result);
+          else reject(new Error('Failed to parse JSON from response'));
+        } catch (e) { reject(e); }
       });
     });
     req.on('error', reject);
-    req.write(body);
+    req.write(ai.buildBody(userMessage));
     req.end();
   });
-}
-
-function extractJson(text) {
-  const match = text.match(/\{[\s\S]*\}/);
-  return match ? JSON.parse(match[0]) : null;
 }
 
 async function main() {
@@ -161,11 +229,7 @@ async function main() {
         .replace(/\s+/g, ' ')
         .trim()
         .slice(0, 30000);
-      const response = await callClaude(
-        'You are a pricing data extraction tool. The user gives you a web page. Extract ALL model pricing as a JSON object. Keys: lowercase model names. Values: {cacheHit, cacheMiss, output} in the page\'s native currency per 1M tokens. Cache hit = 0 if not mentioned. Return ONLY the JSON object, no markdown, no explanation.',
-        `${src.prompt}\n\nWEB PAGE:\n${text}`
-      );
-      const json = extractJson(response.content[0]?.text || '');
+      const json = await callAI(`${src.prompt}\n\nWEB PAGE:\n${text}`);
       if (json && Object.keys(json).length > 0) {
         providers.push({ name: src.name, currency: src.currency, models: json });
         console.log(`    OK — ${Object.keys(json).length} models:`, Object.keys(json).join(', '));
