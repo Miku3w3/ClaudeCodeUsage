@@ -175,28 +175,29 @@ async function fetchPage(url) {
   });
 }
 
-/** Search the web for pricing info using DuckDuckGo (free, no key). */
+/** Search the web for pricing info — tries multiple free engines. */
 async function searchWeb(query) {
-  const url = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`;
+  // Engine 1: DuckDuckGo
   try {
+    const url = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`;
     const html = await fetchPage(url);
-    // Extract relevant text snippets from the results page
-    const cleaned = html
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .replace(/.*?result__body|result__snippet/gi, '')
-      .trim()
-      .slice(0, 8000);
-    // Also try the instant answer API
-    const instant = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
-    let instantText = '';
-    try {
-      const res = await fetchPage(instant);
-      const data = JSON.parse(res);
-      instantText = (data.AbstractText || data.Answer || '').slice(0, 2000);
-    } catch { /* ignore */ }
-    return (cleaned + ' ' + instantText).slice(0, 10000);
-  } catch { return ''; }
+    if (html && html.length > 200) {
+      const cleaned = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 8000);
+      if (cleaned.length > 100) return cleaned;
+    }
+  } catch { /* */ }
+
+  // Engine 2: Bing (better for Chinese content)
+  try {
+    const url = `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=en`;
+    const html = await fetchPage(url);
+    if (html && html.length > 200) {
+      const cleaned = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 8000);
+      if (cleaned.length > 100) return cleaned;
+    }
+  } catch { /* */ }
+
+  return '';
 }
 
 function callAI(userMessage) {
