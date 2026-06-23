@@ -158,17 +158,20 @@ const ALL_PROVIDERS = [
 
 const RATE_API_URL = 'https://open.er-api.com/v6/latest/USD';
 
-function fetchPage(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, { timeout: 15000, headers: { 'User-Agent': 'CCTM-PricingUpdater/1.0' } }, (res) => {
-      if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location) {
-        return fetchPage(res.headers.location).then(resolve).catch(reject);
-      }
-      let data = '';
-      res.on('data', c => { data += c; });
-      res.on('end', () => resolve(data));
-    }).on('error', reject);
-  });
+async function fetchPage(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CCTM/1.0)' },
+      redirect: 'follow',
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.text();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function callAI(userMessage) {
