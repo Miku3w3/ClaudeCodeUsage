@@ -221,28 +221,35 @@ async function main() {
   for (const src of ALL_PROVIDERS) {
     console.log(`  ${src.name}...`);
     try {
-      // Support both single url (string) and multiple urls (array)
+      // Try fetching the official page first
       const urls = src.urls || [src.url];
       let html = null;
       for (const url of urls) {
         try { html = await fetchPage(url); if (html) break; } catch { /* try next URL */ }
       }
-      if (!html) throw new Error('All URLs failed');
-      const text = html
-        .replace(/<script[\s\S]*?<\/script>/gi, '')
-        .replace(/<style[\s\S]*?<\/style>/gi, '')
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 30000);
-      const json = await callAI(`${src.prompt}\n\nWEB PAGE:\n${text}`);
+
+      let json = null;
+      if (html) {
+        const text = html
+          .replace(/<script[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 30000);
+        json = await callAI(`${src.prompt}\n\nWEB PAGE:\n${text}`);
+      } else {
+        // Fallback: ask AI from its training knowledge (works even without page fetch)
+        console.log('    (no page — asking AI from knowledge)');
+        const currency = src.currency;
+        json = await callAI(`List ALL current ${src.name} model pricing as JSON. Keys: lowercase model names. Values: {cacheHit, cacheMiss, output} in ${currency} per 1M tokens. cacheHit=0 if no cache discount. Return ONLY the JSON object.`);
+      }
+
       if (json && Object.keys(json).length > 0) {
         providers.push({ name: src.name, currency: src.currency, models: json });
         console.log(`    OK — ${Object.keys(json).length} models:`, Object.keys(json).join(', '));
       } else {
-        console.log('    FAIL — keeping existing');
-        const ex = existing.providers?.find(p => p.name === src.name);
-        if (ex) providers.push(ex);
+        throw new Error('No models extracted');
       }
     } catch (e) {
       console.log(`    FAIL — ${e.message}, keeping existing`);
