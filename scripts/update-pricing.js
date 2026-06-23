@@ -220,39 +220,46 @@ async function main() {
   console.log('[2/2] Fetching model pricing from', ALL_PROVIDERS.length, 'providers...');
   for (const src of ALL_PROVIDERS) {
     console.log(`  ${src.name}...`);
-    try {
-      // Try fetching the official page first
-      const urls = src.urls || [src.url];
-      let html = null;
-      for (const url of urls) {
-        try { html = await fetchPage(url); if (html) break; } catch { /* try next URL */ }
-      }
+    let json = null;
+    let source = 'page';
 
-      let json = null;
-      if (html) {
-        const text = html
-          .replace(/<script[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[\s\S]*?<\/style>/gi, '')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .slice(0, 30000);
-        json = await callAI(`${src.prompt}\n\nWEB PAGE:\n${text}`);
-      } else {
-        // Fallback: ask AI from its training knowledge (works even without page fetch)
-        console.log('    (no page — asking AI from knowledge)');
-        const currency = src.currency;
-        json = await callAI(`List ALL current ${src.name} model pricing as JSON. Keys: lowercase model names. Values: {cacheHit, cacheMiss, output} in ${currency} per 1M tokens. cacheHit=0 if no cache discount. Return ONLY the JSON object.`);
-      }
+    // Step 1: try scraping the official pricing page
+    const urls = src.urls || [src.url];
+    for (const url of urls) {
+      try {
+        const html = await fetchPage(url);
+        if (html && html.length > 100) {
+          const text = html
+            .replace(/<script[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 30000);
+          json = await callAI(`${src.prompt}\n\nWEB PAGE:\n${text}`);
+          if (json && Object.keys(json).length > 0) break;
+        }
+      } catch { /* try next URL */ }
+    }
 
-      if (json && Object.keys(json).length > 0) {
-        providers.push({ name: src.name, currency: src.currency, models: json });
-        console.log(`    OK — ${Object.keys(json).length} models:`, Object.keys(json).join(', '));
-      } else {
-        throw new Error('No models extracted');
-      }
-    } catch (e) {
-      console.log(`    FAIL — ${e.message}, keeping existing`);
+    // Step 2: if scraping failed, ask AI from knowledge
+    if (!json || Object.keys(json).length === 0) {
+      source = 'knowledge';
+      console.log('    (no page — asking AI from knowledge)');
+      try {
+        json = await callAI(
+          `What are the CURRENT official model prices for ${src.name}? ` +
+          `Return ONLY a JSON object where keys are lowercase model names and values are {cacheHit, cacheMiss, output} objects with prices in ${src.currency} per 1 million tokens. ` +
+          `cacheHit=0 if the provider does not offer cache discounts. Include ALL currently available models. Do NOT invent models — only include real ones.`
+        );
+      } catch { /* fall through to existing */ }
+    }
+
+    if (json && Object.keys(json).length > 0) {
+      providers.push({ name: src.name, currency: src.currency, models: json });
+      console.log(`    OK (${source}) — ${Object.keys(json).length} models:`, Object.keys(json).join(', '));
+    } else {
+      console.log('    FAIL — keeping existing');
       const ex = existing.providers?.find(p => p.name === src.name);
       if (ex) providers.push(ex);
     }
