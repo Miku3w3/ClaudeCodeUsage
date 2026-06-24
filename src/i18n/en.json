@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "Waiting...",
-  "statusBar.thinking": "Think",
   "statusBar.cumulative": "Total",
   "statusBar.noData": "No active session detected",
   "command.showLastCost": "Show Last Message Cost",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "Input (cache miss)",
   "panel.cacheHits": "Cache hits",
   "panel.outputTokens": "Output",
-  "panel.lastThinkTime": "Last think time",
   "panel.messagesCount": "messages",
   "panel.autoRefresh": "Auto-refresh every {0}s",
   "panel.type": "Type",
@@ -49,7 +47,6 @@
   "tooltip.cacheMiss": "Cache miss",
   "tooltip.output": "Output",
   "tooltip.cost": "Cost",
-  "tooltip.thinkTime": "Think time",
   "tooltip.hitRate": "Cache hit rate",
   "tooltip.noMessages": "No messages",
   "tooltip.sessionTotal": "Session total",

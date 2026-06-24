@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "대기 중...",
-  "statusBar.thinking": "사고",
   "statusBar.cumulative": "누계",
   "statusBar.noData": "활성 세션이 없습니다",
   "command.showLastCost": "마지막 메시지 비용 표시",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "입력（캐시 미스）",
   "panel.cacheHits": "캐시 히트",
   "panel.outputTokens": "출력",
-  "panel.lastThinkTime": "마지막 사고 시간",
   "panel.messagesCount": "메시지",
   "panel.autoRefresh": "{0}초마다 자동 새로고침",
   "panel.type": "유형",
@@ -36,7 +34,6 @@
   "tooltip.cacheMiss": "캐시 미스",
   "tooltip.output": "출력",
   "tooltip.cost": "비용",
-  "tooltip.thinkTime": "사고 시간",
   "tooltip.hitRate": "캐시 히트율",
   "tooltip.noMessages": "메시지 없음",
   "tooltip.sessionTotal": "세션 누계",

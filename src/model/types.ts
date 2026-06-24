@@ -24,7 +24,6 @@ export interface ExtensionConfig {
   resolvedCurrency: Currency;
   exchangeRates: Record<string, number>;
   customModels: CustomModelConfig[];
-  showThinkingTime: boolean;
   showModelName: boolean;
   compactMode: boolean;
   budgetWarning: number;

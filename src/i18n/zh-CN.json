@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "等待对话中...",
-  "statusBar.thinking": "思考",
   "statusBar.cumulative": "累计",
   "statusBar.noData": "未检测到活跃会话",
   "command.showLastCost": "显示上一条消息费用",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "输入（缓存未命中）",
   "panel.cacheHits": "缓存命中",
   "panel.outputTokens": "输出",
-  "panel.lastThinkTime": "上条思考时间",
   "panel.messagesCount": "条消息",
   "panel.autoRefresh": "每 {0} 秒自动刷新",
   "panel.type": "类型",
@@ -49,7 +47,6 @@
   "tooltip.cacheMiss": "缓存未命中",
   "tooltip.output": "输出",
   "tooltip.cost": "费用",
-  "tooltip.thinkTime": "思考时间",
   "tooltip.hitRate": "缓存命中率",
   "tooltip.noMessages": "暂无消息",
   "tooltip.sessionTotal": "会话累计",

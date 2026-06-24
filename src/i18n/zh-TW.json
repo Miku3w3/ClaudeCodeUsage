@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "等待對話中...",
-  "statusBar.thinking": "思考",
   "statusBar.cumulative": "累計",
   "statusBar.noData": "未偵測到活躍會話",
   "command.showLastCost": "顯示上一條訊息費用",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "輸入（快取未命中）",
   "panel.cacheHits": "快取命中",
   "panel.outputTokens": "輸出",
-  "panel.lastThinkTime": "上次思考時間",
   "panel.messagesCount": "條訊息",
   "panel.autoRefresh": "每 {0} 秒自動重新整理",
   "panel.type": "類型",
@@ -36,7 +34,6 @@
   "tooltip.cacheMiss": "快取未命中",
   "tooltip.output": "輸出",
   "tooltip.cost": "費用",
-  "tooltip.thinkTime": "思考時間",
   "tooltip.hitRate": "快取命中率",
   "tooltip.noMessages": "暫無訊息",
   "tooltip.sessionTotal": "會話累計",

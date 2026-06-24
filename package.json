@@ -146,11 +146,6 @@
             }
           }
         },
-        "claudeTokenMonitor.statusBar.showThinkingTime": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show thinking time in the status bar."
-        },
         "claudeTokenMonitor.statusBar.showModelName": {
           "type": "boolean",
           "default": false,

@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "في الانتظار...",
-  "statusBar.thinking": "تفكير",
   "statusBar.cumulative": "الإجمالي",
   "statusBar.noData": "لم يتم اكتشاف جلسة نشطة",
   "command.showLastCost": "إظهار تكلفة آخر رسالة",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "الإدخال (فقدان الذاكرة المؤقتة)",
   "panel.cacheHits": "إصابات الذاكرة المؤقتة",
   "panel.outputTokens": "الإخراج",
-  "panel.lastThinkTime": "آخر وقت تفكير",
   "panel.messagesCount": "رسائل",
   "panel.autoRefresh": "تحديث تلقائي كل {0} ثانية",
   "panel.type": "النوع",
@@ -36,7 +34,6 @@
   "tooltip.cacheMiss": "فقدان الذاكرة",
   "tooltip.output": "الإخراج",
   "tooltip.cost": "التكلفة",
-  "tooltip.thinkTime": "وقت التفكير",
   "tooltip.hitRate": "معدل الإصابة",
   "tooltip.noMessages": "لا رسائل",
   "tooltip.sessionTotal": "إجمالي الجلسة",

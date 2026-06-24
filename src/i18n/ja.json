@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "待機中...",
-  "statusBar.thinking": "思考",
   "statusBar.cumulative": "累計",
   "statusBar.noData": "アクティブなセッションがありません",
   "command.showLastCost": "最後のメッセージ費用を表示",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "入力（キャッシュミス）",
   "panel.cacheHits": "キャッシュヒット",
   "panel.outputTokens": "出力",
-  "panel.lastThinkTime": "最終思考時間",
   "panel.messagesCount": "メッセージ",
   "panel.autoRefresh": "{0} 秒ごとに自動更新",
   "panel.type": "種類",
@@ -36,7 +34,6 @@
   "tooltip.cacheMiss": "キャッシュミス",
   "tooltip.output": "出力",
   "tooltip.cost": "費用",
-  "tooltip.thinkTime": "思考時間",
   "tooltip.hitRate": "キャッシュヒット率",
   "tooltip.noMessages": "メッセージなし",
   "tooltip.sessionTotal": "セッション累計",

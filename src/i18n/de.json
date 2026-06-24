@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "Warten...",
-  "statusBar.thinking": "Denken",
   "statusBar.cumulative": "Gesamt",
   "statusBar.noData": "Keine aktive Sitzung erkannt",
   "command.showLastCost": "Letzte Nachricht Kosten anzeigen",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "Eingabe (Cache verfehlt)",
   "panel.cacheHits": "Cache-Treffer",
   "panel.outputTokens": "Ausgabe",
-  "panel.lastThinkTime": "Letzte Denkzeit",
   "panel.messagesCount": "Nachrichten",
   "panel.autoRefresh": "Auto-Aktualisierung alle {0}s",
   "panel.type": "Typ",
@@ -36,7 +34,6 @@
   "tooltip.cacheMiss": "Cache-Fehler",
   "tooltip.output": "Ausgabe",
   "tooltip.cost": "Kosten",
-  "tooltip.thinkTime": "Denkzeit",
   "tooltip.hitRate": "Trefferquote",
   "tooltip.noMessages": "Keine Nachrichten",
   "tooltip.sessionTotal": "Sitzung gesamt",

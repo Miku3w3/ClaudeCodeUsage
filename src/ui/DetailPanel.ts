@@ -16,7 +16,6 @@ export interface PanelData {
   messageCount: number;
   messages: PerMessageStats[];
   lastUpdatedAt: string;
-  thinkingTime: number | null;
   /** Accumulated AI working time in current turn (ms) */
   turnAiTimeMs?: number;
   lang?: string;
@@ -114,7 +113,6 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       inputTokens: t('panel.inputTokens'),
       cacheHits: t('panel.cacheHits'),
       outputTokens: t('panel.outputTokens'),
-      lastThinkTime: t('panel.lastThinkTime'),
       messagesCount: t('panel.messagesCount'),
       autoRefresh: t('panel.autoRefresh'),
       type: t('panel.type'),
@@ -173,7 +171,6 @@ export class DetailPanel implements vscode.WebviewViewProvider {
     this.view?.webview.postMessage({
       type: 'sessionDetail',
       session,
-      thinkingTime: session.thinkingTime,
       lang: session.lang || 'en',
       currency: session.currency || 'USD',
       i18n: this.getTranslations(),
@@ -184,7 +181,6 @@ export class DetailPanel implements vscode.WebviewViewProvider {
     this.view?.webview.postMessage({
       type: 'fullUpdate',
       session: data,
-      thinkingTime: data.thinkingTime,
       lang: data.lang || 'en',
       currency: data.currency || 'USD',
       sessionList: (data as any).sessionList || [],
@@ -205,7 +201,6 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       inputTokens: t('panel.inputTokens'),
       cacheHits: t('panel.cacheHits'),
       outputTokens: t('panel.outputTokens'),
-      lastThinkTime: t('panel.lastThinkTime'),
       messagesCount: t('panel.messagesCount'),
       autoRefresh: t('panel.autoRefresh'),
       type: t('panel.type'),
@@ -353,7 +348,7 @@ function toggleModelDetail(idx) {
 function togglePause() {
   isPaused = !isPaused;
   if (!isPaused && sessionData) {
-    renderFull(sessionData, sessionData.thinkingTime);
+    renderFull(sessionData);
   }
   var btn = document.getElementById('pauseBtn');
   if (btn) btn.textContent = isPaused ? STR.resumeRefresh : STR.pauseRefresh;
@@ -406,7 +401,7 @@ function renderFilterBar() {
         selectedSessionId = null;
         currentTimeRange = 'current';
         updateFilterUI();
-        if (sessionData) renderFull(sessionData, sessionData.thinkingTime);
+        if (sessionData) renderFull(sessionData);
       }
     };
   }
@@ -441,7 +436,7 @@ function setTimeRange(tr) {
   isGroupByModel = false;
   updateFilterUI();
   if (tr === 'current') {
-    if (sessionData) renderFull(sessionData, sessionData.thinkingTime);
+    if (sessionData) renderFull(sessionData);
   }
   vscode.postMessage({ type: 'setTimeRange', timeRange: tr });
 }
@@ -455,7 +450,7 @@ function toggleGroupByModel() {
   isGroupByModel = !isGroupByModel;
   updateFilterUI();
   if (aggregatedData) renderAggregated(aggregatedData);
-  else if (sessionData) renderFull(sessionData, sessionData.thinkingTime);
+  else if (sessionData) renderFull(sessionData);
 }
 
 function openSettings() {
@@ -490,7 +485,7 @@ window.addEventListener('message', (e) => {
     // Only render if in 'current' view (or no filter active)
     if (!isPaused && currentTimeRange === 'current' && !selectedSessionId) {
       aggregatedData = null;
-      renderFull(sessionData, msg.thinkingTime);
+      renderFull(sessionData);
     }
   } else if (msg.type === 'aggregatedData' && msg.data) {
     applyI18n(msg.i18n);
@@ -507,7 +502,7 @@ window.addEventListener('message', (e) => {
     if (!isPaused) {
       aggregatedData = null;
       currentTimeRange = '';
-      renderFull(msg.session, msg.thinkingTime);
+      renderFull(msg.session);
     }
   }
 });
@@ -559,7 +554,7 @@ function updateSessionDropdown() {
   }
 }
 
-function renderFull(s, thinkingTime) {
+function renderFull(s) {
   // Save expanded model details state
   var expandedModels = [];
   for (var i = 0; i < 100; i++) {
@@ -624,7 +619,6 @@ function renderFull(s, thinkingTime) {
       '<div class="stat-card"><div class="label">&#10060; ' + STR.cacheMiss + '</div><div class="value">' + fmtTokens(s.cumulativeInputTokens) + '</div></div>' +
       '<div class="stat-card"><div class="label">&#128200; ' + STR.hitRate + '</div><div class="value">' + cumHitRate + '</div></div>' +
       '<div class="stat-card"><div class="label">&#128228; ' + STR.outputTokens + '</div><div class="value">' + fmtTokens(s.cumulativeOutputTokens) + '</div></div>' +
-      '<div class="stat-card"><div class="label">&#9201; ' + STR.lastThinkTime + '</div><div class="value">' + fmtThink(thinkingTime) + '</div></div>' +
       '<div class="stat-card"><div class="label">&#9203; ' + STR.turnAiTime + '</div><div class="value turn-ai">' + fmtThink(s.turnAiTimeMs) + '</div></div>' +
     '</div>';
   }

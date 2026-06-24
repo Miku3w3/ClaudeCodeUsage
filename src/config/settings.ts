@@ -29,7 +29,6 @@ export function getConfig(): ExtensionConfig {
     exchangeRates: rawRates,
     customModels: (cfg.get<any[]>('customModels') || []) as CustomModelConfig[],
 
-    showThinkingTime: cfg.get<boolean>('statusBar.showThinkingTime', true),
     showModelName:    cfg.get<boolean>('statusBar.showModelName', false),
     compactMode:      cfg.get<boolean>('statusBar.compactMode', false),
 

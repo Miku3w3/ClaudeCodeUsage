@@ -390,7 +390,6 @@ function updateStatusBar(): void {
 
   const totalTokens = cumulativeInput + cumulativeCacheRead + cumulativeOutput;
   const lastAsst = findLast(messages, m => !m.isUserMessage);
-  const thinkTime = findLastThinkingTime();
   const lastTokens = lastAsst ? lastAsst.inputTokens + lastAsst.outputTokens : 0;
   const lastCost = lastAsst ? lastAsst.costCNY : 0;
   const shortTitle = currentTitle.length > 8 ? currentTitle.slice(0, 8) + '…' : currentTitle;
@@ -402,9 +401,6 @@ function updateStatusBar(): void {
     statusBarItem.text = `$(pulse) ${shortTitle} | ${abbreviateTokens(totalTokens)} ${formatCost(displayCumulativeCost, currency)}`;
   } else {
     const parts: string[] = [shortTitle];
-    if (currentConfig.showThinkingTime) {
-      parts.push(`${t('statusBar.thinking')}${thinkTime !== null ? formatThinkTime(thinkTime) : '-'}`);
-    }
     if (currentConfig.showModelName) {
       parts.push(currentModel);
     }
@@ -446,9 +442,6 @@ function updateStatusBar(): void {
     md.appendMarkdown(`${t('tooltip.cacheMiss')}  \n  ${lastAsst.inputTokens.toLocaleString()}\n\n`);
     md.appendMarkdown(`${t('tooltip.output')}  \n  ${lastAsst.outputTokens.toLocaleString()}\n\n`);
     md.appendMarkdown(`${t('tooltip.cost')}  \n  ${formatCost(displayLastCost, currency)}\n\n`);
-    if (lastAsst.thinkingTimeMs !== null) {
-      md.appendMarkdown(`${t('tooltip.thinkTime')}  \n  ${formatThinkTime(lastAsst.thinkingTimeMs)}\n\n`);
-    }
   } else {
     md.appendMarkdown(`*${t('tooltip.noMessages')}*\n\n`);
   }
@@ -538,11 +531,6 @@ function resetState(): void {
 
 function findLast<T>(arr: T[], pred: (item: T) => boolean): T | null {
   for (let i = arr.length - 1; i >= 0; i--) { if (pred(arr[i])) return arr[i]; }
-  return null;
-}
-
-function findLastThinkingTime(): number | null {
-  for (let i = messages.length - 1; i >= 0; i--) { if (messages[i].thinkingTimeMs !== null) return messages[i].thinkingTimeMs; }
   return null;
 }
 
@@ -683,7 +671,6 @@ function handleSelectSession(sessionId: string, postMsg?: (msg: any) => void): v
     messageCount: entry.messageCount,
     messages: msgs.slice(-200),
     lastUpdatedAt: new Date(entry.lastUpdatedAt).toISOString(),
-    thinkingTime: lastAsst?.thinkingTimeMs ?? null,
     turnAiTimeMs: lastAsst?.turnAiTimeMs ?? 0,
     lang: currentConfig.resolvedLanguage,
     currency: currentConfig.resolvedCurrency,
@@ -695,7 +682,6 @@ function handleSelectSession(sessionId: string, postMsg?: (msg: any) => void): v
     postMsg({
       type: 'sessionDetail',
       session: sessionData,
-      thinkingTime: sessionData.thinkingTime,
       lang: sessionData.lang || 'en',
       currency: sessionData.currency || 'USD',
       i18n: detailPanel.getTranslations(),
@@ -844,7 +830,6 @@ function pushToWebview(): void {
     totalTokens, messageCount,
     messages: messages.slice(-200),
     lastUpdatedAt: new Date().toISOString(),
-    thinkingTime: findLastThinkingTime(),
     turnAiTimeMs: turnAiAccumulatorMs,
     lang: currentConfig.resolvedLanguage,
     currency: currency,
@@ -860,7 +845,6 @@ function pushToWebviewPanel(panel: vscode.WebviewPanel): void {
   const displayCumulativeCost = costInDisplayCurrency(cumulativeCost, currency);
   panel.webview.postMessage({
     type: 'fullUpdate',
-    thinkingTime: findLastThinkingTime(),
     lang: currentConfig.resolvedLanguage,
     currency: currency,
     i18n: detailPanel.getTranslations(),
@@ -873,7 +857,6 @@ function pushToWebviewPanel(panel: vscode.WebviewPanel): void {
       totalTokens, messageCount,
       messages: messages.slice(-200),
       lastUpdatedAt: new Date().toISOString(),
-      thinkingTime: findLastThinkingTime(),
       turnAiTimeMs: turnAiAccumulatorMs,
       lang: currentConfig.resolvedLanguage,
       currency: currency,

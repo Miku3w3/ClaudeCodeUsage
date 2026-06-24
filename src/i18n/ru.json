@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "Ожидание...",
-  "statusBar.thinking": "Размышление",
   "statusBar.cumulative": "Всего",
   "statusBar.noData": "Активная сессия не обнаружена",
   "command.showLastCost": "Показать стоимость последнего сообщения",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "Ввод (промах кэша)",
   "panel.cacheHits": "Попадания кэша",
   "panel.outputTokens": "Вывод",
-  "panel.lastThinkTime": "Последнее время размышления",
   "panel.messagesCount": "сообщений",
   "panel.autoRefresh": "Автообновление каждые {0}с",
   "panel.type": "Тип",
@@ -36,7 +34,6 @@
   "tooltip.cacheMiss": "Промах кэша",
   "tooltip.output": "Вывод",
   "tooltip.cost": "Стоимость",
-  "tooltip.thinkTime": "Время размышления",
   "tooltip.hitRate": "Попадания кэша",
   "tooltip.noMessages": "Нет сообщений",
   "tooltip.sessionTotal": "Всего за сессию",

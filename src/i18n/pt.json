@@ -1,6 +1,5 @@
 {
   "statusBar.idle": "Aguardando...",
-  "statusBar.thinking": "Pensar",
   "statusBar.cumulative": "Total",
   "statusBar.noData": "Nenhuma sessão ativa detectada",
   "command.showLastCost": "Mostrar custo da última mensagem",
@@ -15,7 +14,6 @@
   "panel.inputTokens": "Entrada (erro de cache)",
   "panel.cacheHits": "Acertos de cache",
   "panel.outputTokens": "Saída",
-  "panel.lastThinkTime": "Último tempo de pensamento",
   "panel.messagesCount": "mensagens",
   "panel.autoRefresh": "Atualização automática a cada {0}s",
   "panel.type": "Tipo",
@@ -36,7 +34,6 @@
   "tooltip.cacheMiss": "Falha cache",
   "tooltip.output": "Saída",
   "tooltip.cost": "Custo",
-  "tooltip.thinkTime": "Tempo pensando",
   "tooltip.hitRate": "Taxa acerto",
   "tooltip.noMessages": "Sem mensagens",
   "tooltip.sessionTotal": "Total sessão",
