@@ -9,7 +9,7 @@ import {
   calculateCost, normalizeModelName, formatCost, abbreviateTokens,
   resolvePricing, convertCurrency,
 } from './model/CostCalculator';
-import { claudeDir, tokenMonitorDir, tokenTrackerDir } from './utils/paths';
+import { claudeDir, tokenMonitorDir, tokenTrackerDir, transcriptPath as getTranscriptPath } from './utils/paths';
 import type { PerMessageStats, SessionPidFile, ClaudeReadableData, TimeRange, AggregatedData, SessionIndexEntry, ModelStatEntry } from './model/types';
 import { DetailPanel } from './ui/DetailPanel';
 import type { PanelData } from './ui/DetailPanel';
@@ -634,7 +634,7 @@ function handleSetTimeRange(timeRange: TimeRange, postMsg?: (msg: any) => void):
   }
 
   const sessions = SessionStore.getSessionsInRange(startMs, now);
-  const agg = buildAggregatedData(timeRange, sessions, now);
+  const agg = buildAggregatedData(timeRange, sessions, now, startMs);
 
   if (postMsg) {
     postMsg({
@@ -703,31 +703,51 @@ function handleClearSessionSelection(): void {
   pushToWebview();
 }
 
-/** Build AggregatedData from a list of SessionIndexEntry. */
-function buildAggregatedData(timeRange: TimeRange, sessions: SessionIndexEntry[], now: number): AggregatedData {
+/** Build AggregatedData from sessions, filtering messages by timestamp range. */
+function buildAggregatedData(timeRange: TimeRange, sessions: SessionIndexEntry[], endMs: number, startMs: number): AggregatedData {
   let totalTokens = 0, totalCostCNY = 0, inputTokens = 0, outputTokens = 0,
     cacheHits = 0, cacheMiss = 0, messageCount = 0;
 
+  const allFilteredMsgs: PerMessageStats[] = [];
+  const activeSessions: SessionIndexEntry[] = []; // sessions with ≥1 message in range
+
   for (const s of sessions) {
-    // totalInputTokens = cache-miss, totalCacheHitTokens = cache-hit, totalOutputTokens = output
-    // totalCacheMissTokens is deprecated (always 0, redundant with totalInputTokens)
-    totalTokens += s.totalInputTokens + s.totalOutputTokens + s.totalCacheHitTokens;
-    totalCostCNY += s.totalCostCNY;
-    inputTokens += s.totalInputTokens + s.totalCacheHitTokens;
-    outputTokens += s.totalOutputTokens;
-    cacheHits += s.totalCacheHitTokens;
-    cacheMiss += s.totalInputTokens;
-    messageCount += s.messageCount;
+    const fp = getTranscriptPath(s.cwd, s.sessionId);
+    const msgs = parseFullTranscript(fp);
+    if (msgs.length === 0) continue;
+
+    // Filter messages whose timestamp falls within [startMs, endMs]
+    const filtered = msgs.filter(m => {
+      const ts = new Date(m.timestamp).getTime();
+      return ts >= startMs && ts <= endMs;
+    });
+
+    const assistantMsgs = filtered.filter(m => !m.isUserMessage);
+    if (assistantMsgs.length === 0) continue; // no assistant messages in range → skip session
+
+    activeSessions.push(s);
+
+    for (const m of assistantMsgs) {
+      totalTokens += m.inputTokens + m.outputTokens + m.cacheReadTokens;
+      totalCostCNY += m.costCNY;
+      inputTokens += m.inputTokens + m.cacheReadTokens;
+      outputTokens += m.outputTokens;
+      cacheHits += m.cacheReadTokens;
+      cacheMiss += m.inputTokens;
+      messageCount++;
+    }
+
+    allFilteredMsgs.push(...assistantMsgs);
   }
 
   const totalInput = inputTokens;
   const hitRate = totalInput > 0 ? (cacheHits / totalInput * 100) : 0;
   const displayCost = costInDisplayCurrency(totalCostCNY, currentConfig.resolvedCurrency);
-  const modelStats = SessionStore.aggregateModelStats(sessions);
+  const modelStats = buildModelStatsFromMessages(allFilteredMsgs);
 
   return {
     timeRange,
-    sessions,
+    sessions: activeSessions,
     totalTokens,
     totalCost: displayCost,
     totalCostCNY,
@@ -737,7 +757,7 @@ function buildAggregatedData(timeRange: TimeRange, sessions: SessionIndexEntry[]
     cacheMiss,
     hitRate: Math.round(hitRate * 10) / 10,
     messageCount,
-    sessionCount: sessions.length,
+    sessionCount: activeSessions.length,
     modelStats,
   };
 }

@@ -10,7 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { claudeDir, tokenTrackerDir } from '../utils/paths';
-import type { SessionIndex, SessionIndexEntry, ModelStatEntry } from '../model/types';
+import type { SessionIndex, SessionIndexEntry } from '../model/types';
 import { calculateCost, normalizeModelName as normalizeModelNameFull } from '../model/CostCalculator';
 
 // ─── Public API ─────────────────────────────────────────────────
@@ -143,26 +143,6 @@ export function getSessionList(): Array<{ sessionId: string; title: string; star
     title: s.title || s.sessionId.slice(0, 8) + '...',
     startedAt: s.startedAt,
   }));
-}
-
-/**
- * Aggregate model stats from a list of SessionIndexEntry.
- * Used to build modelStats for daily/weekly/yearly/all views.
- */
-export function aggregateModelStats(sessions: SessionIndexEntry[]): ModelStatEntry[] {
-  const map = new Map<string, ModelStatEntry>();
-  for (const s of sessions) {
-    const model = s.primaryModel || 'unknown';
-    const entry = map.get(model) || { model, cost: 0, tokens: 0, inputTokens: 0, cacheHits: 0, cacheMiss: 0, outputTokens: 0 };
-    entry.cost += s.totalCostCNY;
-    entry.tokens += s.totalInputTokens + s.totalCacheHitTokens + s.totalCacheMissTokens + s.totalOutputTokens;
-    entry.inputTokens += s.totalInputTokens + s.totalCacheHitTokens + s.totalCacheMissTokens;
-    entry.cacheHits += s.totalCacheHitTokens;
-    entry.cacheMiss += s.totalCacheMissTokens;
-    entry.outputTokens += s.totalOutputTokens;
-    map.set(model, entry);
-  }
-  return Array.from(map.values()).sort((a, b) => b.cost - a.cost);
 }
 
 // ─── Internal helpers ───────────────────────────────────────────
