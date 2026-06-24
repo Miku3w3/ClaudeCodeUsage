@@ -40,6 +40,8 @@ let lastTranscriptPath = '';
 const seenMessageIds = new Set<string>();
 let pendingUserTs: number | null = null;
 let turnAiAccumulatorMs = 0;
+let turnTokens = 0;
+let turnCost = 0;
 
 // Tab-switching state (v0.3.0 mechanism)
 let activeSessionOverride: { sessionId: string; cwd: string } | null = null;
@@ -315,7 +317,9 @@ function poll(): void {
             model: '', costCNY: 0, thinkingTimeMs: null,
           });
           pendingUserTs = new Date(event.timestamp).getTime();
-          turnAiAccumulatorMs = 0; // New real user message → reset turn accumulator
+          turnAiAccumulatorMs = 0; // New real user message → reset turn accumulators
+          turnTokens = 0;
+          turnCost = 0;
           changed = true;
           continue;
         }
@@ -357,6 +361,8 @@ function poll(): void {
           cumulativeOutput += usage.output_tokens;
           cumulativeCacheRead += usage.cache_read_input_tokens;
           cumulativeCost += cost;
+          turnTokens += usage.input_tokens + usage.output_tokens + usage.cache_read_input_tokens;
+          turnCost += cost;
           messageCount++;
           changed = true;
         }
@@ -390,8 +396,6 @@ function updateStatusBar(): void {
 
   const totalTokens = cumulativeInput + cumulativeCacheRead + cumulativeOutput;
   const lastAsst = findLast(messages, m => !m.isUserMessage);
-  const lastTokens = lastAsst ? lastAsst.inputTokens + lastAsst.outputTokens : 0;
-  const lastCost = lastAsst ? lastAsst.costCNY : 0;
   const shortTitle = currentTitle.length > 8 ? currentTitle.slice(0, 8) + '…' : currentTitle;
   const currency = currentConfig.resolvedCurrency;
   const displayCumulativeCost = costInDisplayCurrency(cumulativeCost, currency);
@@ -405,7 +409,7 @@ function updateStatusBar(): void {
       parts.push(currentModel);
     }
     parts.push(`${t('statusBar.turnAiTime')}${formatThinkTime(turnAiAccumulatorMs)}`);
-    parts.push(`${abbreviateTokens(lastTokens)} ${formatCost(costInDisplayCurrency(lastCost, currency), currency)}`);
+    parts.push(`${abbreviateTokens(turnTokens)} ${formatCost(costInDisplayCurrency(turnCost, currency), currency)}`);
     parts.push(`${t('statusBar.cumulative')}${abbreviateTokens(totalTokens)} ${formatCost(displayCumulativeCost, currency)}`);
     statusBarItem.text = `$(pulse) ${parts.join(' | ')}`;
   }
@@ -527,6 +531,7 @@ function resetState(): void {
   cumulativeInput = 0; cumulativeOutput = 0; cumulativeCacheRead = 0; cumulativeCost = 0;
   messageCount = 0; messages = []; lastFileSize = 0; lastTranscriptPath = '';
   seenMessageIds.clear(); pendingUserTs = null; activeSessionOverride = null;
+  turnAiAccumulatorMs = 0; turnTokens = 0; turnCost = 0;
   budgetWarned = false;
   if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
 }
