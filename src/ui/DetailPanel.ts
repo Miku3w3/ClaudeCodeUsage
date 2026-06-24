@@ -477,13 +477,13 @@ window.addEventListener('message', (e) => {
   if (msg.type === 'fullUpdate' && msg.session) {
     console.log('[webview] fullUpdate received, msgs:', msg.session.messages ? msg.session.messages.length : 0);
     applyI18n(msg.i18n);
-    sessionData = msg.session;
     if (msg.lang) currentLang = msg.lang;
     if (msg.currency) currentCurrency = msg.currency;
     if (msg.session.pollIntervalMs) currentPollMs = msg.session.pollIntervalMs;
-    if (msg.sessionList) { sessionList = msg.sessionList; }
-    // Only render if in 'current' view (or no filter active)
+    if (msg.sessionList) { sessionList = msg.sessionList; updateSessionDropdown(); }
+    // Only update sessionData and render if in 'current' view (not viewing a historical session)
     if (!isPaused && currentTimeRange === 'current' && !selectedSessionId) {
+      sessionData = msg.session;
       aggregatedData = null;
       renderFull(sessionData);
     }
@@ -498,8 +498,9 @@ window.addEventListener('message', (e) => {
     updateSessionDropdown();
   } else if (msg.type === 'sessionDetail' && msg.session) {
     applyI18n(msg.i18n);
-    // Viewing a historical session — render as a snapshot (no live refresh)
+    // Viewing a historical session — save to sessionData and render as snapshot
     if (!isPaused) {
+      sessionData = msg.session;
       aggregatedData = null;
       currentTimeRange = '';
       renderFull(msg.session);
