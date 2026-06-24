@@ -25,6 +25,9 @@ let statusBarItem: vscode.StatusBarItem;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let detailPanel: DetailPanel;
 
+// Transcript parse cache — keyed by file path, invalidated on mtime change
+const transcriptCache = new Map<string, { mtimeMs: number; messages: PerMessageStats[] }>();
+
 // Extension ID (set during activation)
 let extensionId = 'local.claude-code-token-monitor';
 
@@ -658,7 +661,7 @@ function handleSelectSession(sessionId: string, postMsg?: (msg: any) => void): v
   const tp = path.join(claudeDir(), 'projects', encodeProjectPath(entry.cwd), sessionId + '.jsonl');
   if (!fs.existsSync(tp)) return;
 
-  const msgs = parseFullTranscript(tp);
+  const msgs = parseFullTranscriptCached(tp);
   const totalTokens = msgs.reduce((sum, m) => sum + (m.isUserMessage ? 0 : m.inputTokens + m.outputTokens + m.cacheReadTokens), 0);
   const totalCost = msgs.reduce((sum, m) => sum + (m.isUserMessage ? 0 : m.costCNY), 0);
   const displayCost = costInDisplayCurrency(totalCost, currentConfig.resolvedCurrency);
@@ -713,7 +716,7 @@ function buildAggregatedData(timeRange: TimeRange, sessions: SessionIndexEntry[]
 
   for (const s of sessions) {
     const fp = getTranscriptPath(s.cwd, s.sessionId);
-    const msgs = parseFullTranscript(fp);
+    const msgs = parseFullTranscriptCached(fp);
     if (msgs.length === 0) continue;
 
     // Filter messages whose timestamp falls within [startMs, endMs]
@@ -762,8 +765,23 @@ function buildAggregatedData(timeRange: TimeRange, sessions: SessionIndexEntry[]
   };
 }
 
-/** Parse an entire transcript file into PerMessageStats[]. */
-function parseFullTranscript(filePath: string): PerMessageStats[] {
+/** Parse a transcript file with mtime-based caching. */
+function parseFullTranscriptCached(filePath: string): PerMessageStats[] {
+  let mtimeMs = 0;
+  try { mtimeMs = fs.statSync(filePath).mtimeMs; } catch { return []; }
+
+  const cached = transcriptCache.get(filePath);
+  if (cached && cached.mtimeMs === mtimeMs) {
+    return cached.messages;
+  }
+
+  const messages = parseFullTranscriptRaw(filePath);
+  transcriptCache.set(filePath, { mtimeMs, messages });
+  return messages;
+}
+
+/** Parse an entire transcript file into PerMessageStats[] (raw, uncached). */
+function parseFullTranscriptRaw(filePath: string): PerMessageStats[] {
   const result: PerMessageStats[] = [];
   let raw: string;
   try { raw = fs.readFileSync(filePath, 'utf-8'); } catch { return result; }
