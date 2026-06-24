@@ -433,7 +433,6 @@ function updateFilterUI() {
 function setTimeRange(tr) {
   currentTimeRange = tr;
   selectedSessionId = null;
-  isGroupByModel = false;
   updateFilterUI();
   if (tr === 'current') {
     if (sessionData) renderFull(sessionData);
