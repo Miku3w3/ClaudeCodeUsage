@@ -25,6 +25,9 @@ let statusBarItem: vscode.StatusBarItem;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let detailPanel: DetailPanel;
 
+// Extension ID (set during activation)
+let extensionId = 'local.claude-code-token-monitor';
+
 // Current session state
 let currentSessionId = '';
 let currentTitle = '';
@@ -1003,6 +1006,9 @@ function refreshConfig(): void {
 
 // ─── Activation ───────────────────────────────────────────────
 export function activate(context: vscode.ExtensionContext): void {
+  // Store the actual extension ID (publisher.name from package.json)
+  extensionId = context.extension.id;
+
   // Load config + init i18n
   currentConfig = getConfig();
   initI18n(currentConfig.language, context.extensionPath);
@@ -1048,7 +1054,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.commands.registerCommand('claudeCodeTokenMonitor.openSettings', () => {
-      vscode.commands.executeCommand('workbench.action.openSettings', '@ext:local.claude-code-token-monitor');
+      vscode.commands.executeCommand('workbench.action.openSettings', '@ext:' + extensionId);
     })
   );
   context.subscriptions.push(
@@ -1070,7 +1076,7 @@ export function activate(context: vscode.ExtensionContext): void {
             panel.webview.postMessage({ type: 'sessionList', sessions: SessionStore.getSessionList() });
           } catch { /* */ }
         } else if (msg.type === 'openSettings') {
-          vscode.commands.executeCommand('workbench.action.openSettings', '@ext:local.claude-code-token-monitor');
+          vscode.commands.executeCommand('workbench.action.openSettings', '@ext:' + extensionId);
         } else if (msg.type === 'setTimeRange') {
           handleSetTimeRange(msg.timeRange as TimeRange, panel.webview.postMessage.bind(panel.webview));
         } else if (msg.type === 'selectSession') {

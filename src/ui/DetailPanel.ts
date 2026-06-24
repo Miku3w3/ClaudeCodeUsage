@@ -75,7 +75,7 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       if (msg.type === 'ready' && this.pendingData) {
         this.sendToWebview(this.pendingData);
       } else if (msg.type === 'openSettings') {
-        vscode.commands.executeCommand('workbench.action.openSettings', '@ext:local.claude-code-token-monitor');
+        vscode.commands.executeCommand('claudeCodeTokenMonitor.openSettings');
       } else if (msg.type === 'setTimeRange' || msg.type === 'selectSession' || msg.type === 'clearSessionSelection') {
         if (this.onFilterMessage) this.onFilterMessage(msg);
       }
