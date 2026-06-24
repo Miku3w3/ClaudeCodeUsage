@@ -62,5 +62,6 @@
   "panel.filter.allSessions": "모든 세션",
   "panel.aggregate.sessionsCount": "{0} 세션",
   "panel.aggregate.noSessions": "기록된 세션이 없습니다",
-  "tooltip.lastModel": "마지막 메시지 모델"
+  "tooltip.lastModel": "마지막 메시지 모델",
+  "panel.turnAiTime": "턴 AI 시간"
 }

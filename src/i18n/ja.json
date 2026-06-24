@@ -62,5 +62,6 @@
   "panel.filter.allSessions": "すべてのセッション",
   "panel.aggregate.sessionsCount": "{0} セッション",
   "panel.aggregate.noSessions": "履歴セッションがありません",
-  "tooltip.lastModel": "最後のメッセージのモデル"
+  "tooltip.lastModel": "最後のメッセージのモデル",
+  "panel.turnAiTime": "ターンAI時間"
 }

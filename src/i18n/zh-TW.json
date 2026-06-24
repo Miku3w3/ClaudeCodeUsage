@@ -62,5 +62,6 @@
   "panel.filter.allSessions": "所有會話",
   "panel.aggregate.sessionsCount": "{0} 個會話",
   "panel.aggregate.noSessions": "暫無歷史會話",
-  "tooltip.lastModel": "上一條訊息模型"
+  "tooltip.lastModel": "上一條訊息模型",
+  "panel.turnAiTime": "本輪AI耗時"
 }

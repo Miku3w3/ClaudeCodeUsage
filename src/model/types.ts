@@ -54,7 +54,7 @@ export interface TokenUsage {
 
 /** Parsed single line from JSONL transcript */
 export interface ParsedEvent {
-  type: 'user' | 'assistant' | 'ai-title' | 'other';
+  type: 'user' | 'assistant' | 'ai-title' | 'tool_result' | 'other';
   timestamp: string;
   uuid: string;
   sessionId: string;
@@ -79,8 +79,10 @@ export interface PerMessageStats {
   cacheCreationTokens: number;
   model: string;
   costCNY: number;
-  /** Thinking time in ms — only meaningful for first assistant after a user message */
+  /** Wall-clock delta (ms) from preceding event to this assistant response */
   thinkingTimeMs: number | null;
+  /** Accumulated AI working time (ms) within the current turn up to this message */
+  turnAiTimeMs?: number;
 }
 
 /** Aggregated session state held in TokenStore */

@@ -3,12 +3,10 @@
   "statusBar.thinking": "Think",
   "statusBar.cumulative": "Total",
   "statusBar.noData": "No active session detected",
-
   "command.showLastCost": "Show Last Message Cost",
   "command.noMessages": "No messages yet.",
   "command.lastMsg": "Last message",
   "command.thinkingTime": "Think time",
-
   "panel.title": "Token Monitor",
   "panel.noSession": "No active session",
   "panel.noSessionHint": "Start a Claude Code conversation to see token usage",
@@ -31,7 +29,6 @@
   "panel.settings": "Settings",
   "panel.pauseRefresh": "Pause",
   "panel.resumeRefresh": "Resume",
-
   "panel.filter.currentSession": "Current",
   "panel.filter.daily": "Daily",
   "panel.filter.weekly": "Weekly",
@@ -43,7 +40,6 @@
   "panel.filter.allSessions": "All Sessions",
   "panel.aggregate.sessionsCount": "{0} sessions",
   "panel.aggregate.noSessions": "No historical sessions",
-
   "tooltip.model": "Model",
   "tooltip.session": "Session",
   "tooltip.lastModel": "Last message model",
@@ -58,7 +54,6 @@
   "tooltip.noMessages": "No messages",
   "tooltip.sessionTotal": "Session total",
   "tooltip.messages": "Messages",
-
   "rates.label": "{0} ≈ {1}",
   "rates.justNow": "Just now",
   "rates.minutesAgo": "{0} min ago",
@@ -66,7 +61,7 @@
   "rates.daysAgo": "{0}d ago",
   "rates.unknown": "Rate unknown",
   "rates.builtin": "Built-in",
-
   "budget.warningTitle": "Budget Warning",
-  "budget.warningBody": "Cumulative cost exceeded {0}"
+  "budget.warningBody": "Cumulative cost exceeded {0}",
+  "panel.turnAiTime": "Turn AI time"
 }

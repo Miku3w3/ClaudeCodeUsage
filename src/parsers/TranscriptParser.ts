@@ -83,7 +83,14 @@ export function parseLine(lineJson: string): ParsedEvent | null {
     }
 
     if (!isRealUserMessage) {
-      return null; // Skip tool_result events
+      // Return tool_result events — needed for turn-based AI time accumulation
+      return {
+        type: 'tool_result',
+        timestamp: obj.timestamp || new Date().toISOString(),
+        uuid: obj.uuid || '',
+        sessionId: obj.sessionId || '',
+        isRealUserMessage: false,
+      };
     }
 
     return {

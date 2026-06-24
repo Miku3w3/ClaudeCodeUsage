@@ -39,6 +39,7 @@ let lastFileSize = 0;
 let lastTranscriptPath = '';
 const seenMessageIds = new Set<string>();
 let pendingUserTs: number | null = null;
+let turnAiAccumulatorMs = 0;
 
 // Tab-switching state (v0.3.0 mechanism)
 let activeSessionOverride: { sessionId: string; cwd: string } | null = null;
@@ -314,7 +315,15 @@ function poll(): void {
             model: '', costCNY: 0, thinkingTimeMs: null,
           });
           pendingUserTs = new Date(event.timestamp).getTime();
+          turnAiAccumulatorMs = 0; // New real user message → reset turn accumulator
           changed = true;
+          continue;
+        }
+
+        if (event.type === 'tool_result') {
+          // Tool result — update reference timestamp for next assistant delta,
+          // but do NOT add to messages[] (tool results are not user messages)
+          pendingUserTs = new Date(event.timestamp).getTime();
           continue;
         }
 
@@ -329,7 +338,10 @@ function poll(): void {
           let thinkTime: number | null = null;
           if (pendingUserTs !== null) {
             thinkTime = new Date(event.timestamp).getTime() - pendingUserTs;
-            pendingUserTs = null;
+            turnAiAccumulatorMs += thinkTime;
+            // Set pendingUserTs to this assistant's timestamp so next assistant
+            // in the same turn measures from here (tool_results will refine it)
+            pendingUserTs = new Date(event.timestamp).getTime();
           }
 
           const msg: PerMessageStats = {
@@ -337,6 +349,7 @@ function poll(): void {
             inputTokens: usage.input_tokens, outputTokens: usage.output_tokens,
             cacheReadTokens: usage.cache_read_input_tokens, cacheCreationTokens: usage.cache_creation_input_tokens,
             model: currentModel, costCNY: cost, thinkingTimeMs: thinkTime,
+            turnAiTimeMs: turnAiAccumulatorMs,
           };
 
           messages.push(msg);
@@ -671,6 +684,7 @@ function handleSelectSession(sessionId: string, postMsg?: (msg: any) => void): v
     messages: msgs.slice(-200),
     lastUpdatedAt: new Date(entry.lastUpdatedAt).toISOString(),
     thinkingTime: lastAsst?.thinkingTimeMs ?? null,
+    turnAiTimeMs: lastAsst?.turnAiTimeMs ?? 0,
     lang: currentConfig.resolvedLanguage,
     currency: currentConfig.resolvedCurrency,
     pollIntervalMs: currentConfig.pollIntervalMs,
@@ -743,6 +757,7 @@ function parseFullTranscript(filePath: string): PerMessageStats[] {
 
   const seenIds = new Set<string>();
   let pendingTs: number | null = null;
+  let turnAccumMs = 0;
 
   for (const line of raw.split('\n')) {
     if (!line.trim()) continue;
@@ -756,6 +771,12 @@ function parseFullTranscript(filePath: string): PerMessageStats[] {
         model: '', costCNY: 0, thinkingTimeMs: null,
       });
       pendingTs = new Date(event.timestamp).getTime();
+      turnAccumMs = 0; // New real user message → reset turn accumulator
+    }
+
+    if (event.type === 'tool_result') {
+      // Tool result — update reference timestamp, don't add to result
+      pendingTs = new Date(event.timestamp).getTime();
     }
 
     if (event.type === 'assistant' && event.usage) {
@@ -768,7 +789,8 @@ function parseFullTranscript(filePath: string): PerMessageStats[] {
       let thinkTime: number | null = null;
       if (pendingTs !== null) {
         thinkTime = new Date(event.timestamp).getTime() - pendingTs;
-        pendingTs = null;
+        turnAccumMs += thinkTime;
+        pendingTs = new Date(event.timestamp).getTime();
       }
 
       result.push({
@@ -776,6 +798,7 @@ function parseFullTranscript(filePath: string): PerMessageStats[] {
         inputTokens: event.usage.input_tokens, outputTokens: event.usage.output_tokens,
         cacheReadTokens: event.usage.cache_read_input_tokens, cacheCreationTokens: event.usage.cache_creation_input_tokens,
         model, costCNY: cost, thinkingTimeMs: thinkTime,
+        turnAiTimeMs: turnAccumMs,
       });
     }
   }
@@ -822,6 +845,7 @@ function pushToWebview(): void {
     messages: messages.slice(-200),
     lastUpdatedAt: new Date().toISOString(),
     thinkingTime: findLastThinkingTime(),
+    turnAiTimeMs: turnAiAccumulatorMs,
     lang: currentConfig.resolvedLanguage,
     currency: currency,
     pollIntervalMs: currentConfig.pollIntervalMs,
@@ -850,6 +874,7 @@ function pushToWebviewPanel(panel: vscode.WebviewPanel): void {
       messages: messages.slice(-200),
       lastUpdatedAt: new Date().toISOString(),
       thinkingTime: findLastThinkingTime(),
+      turnAiTimeMs: turnAiAccumulatorMs,
       lang: currentConfig.resolvedLanguage,
       currency: currency,
       pollIntervalMs: currentConfig.pollIntervalMs,

@@ -17,6 +17,8 @@ export interface PanelData {
   messages: PerMessageStats[];
   lastUpdatedAt: string;
   thinkingTime: number | null;
+  /** Accumulated AI working time in current turn (ms) */
+  turnAiTimeMs?: number;
   lang?: string;
   currency?: string;
   pollIntervalMs?: number;
@@ -142,6 +144,7 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       filterAllSessions: t('panel.filter.allSessions'),
       aggSessionsCount: t('panel.aggregate.sessionsCount'),
       aggNoSessions: t('panel.aggregate.noSessions'),
+      turnAiTime: t('panel.turnAiTime'),
     };
   }
 
@@ -233,6 +236,7 @@ export class DetailPanel implements vscode.WebviewViewProvider {
       filterAllSessions: t('panel.filter.allSessions'),
       aggSessionsCount: t('panel.aggregate.sessionsCount'),
       aggNoSessions: t('panel.aggregate.noSessions'),
+      turnAiTime: t('panel.turnAiTime'),
     };
     const strJson = JSON.stringify(STR);
     const dirAttr = isRTL ? ' dir="rtl"' : '';
@@ -621,6 +625,7 @@ function renderFull(s, thinkingTime) {
       '<div class="stat-card"><div class="label">&#128200; ' + STR.hitRate + '</div><div class="value">' + cumHitRate + '</div></div>' +
       '<div class="stat-card"><div class="label">&#128228; ' + STR.outputTokens + '</div><div class="value">' + fmtTokens(s.cumulativeOutputTokens) + '</div></div>' +
       '<div class="stat-card"><div class="label">&#9201; ' + STR.lastThinkTime + '</div><div class="value">' + fmtThink(thinkingTime) + '</div></div>' +
+      '<div class="stat-card"><div class="label">&#9203; ' + STR.turnAiTime + '</div><div class="value turn-ai">' + fmtThink(s.turnAiTimeMs) + '</div></div>' +
     '</div>';
   }
 

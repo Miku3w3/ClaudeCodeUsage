@@ -4,3 +4,4 @@ out/
 archive/
 .DS_Store
 *.log
+extract_tmp/
