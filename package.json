@@ -3,8 +3,13 @@
   "displayName": "Claude Code Token Monitor",
   "description": "Real-time token usage, cost, and thinking time tracker for Claude Code. Supports DeepSeek, Anthropic, OpenAI, and custom model pricing. Multi-language UI with 11 languages.",
   "version": "1.0.0",
-  "publisher": "local",
+  "publisher": "miku3w3",
+  "icon": "icon.png",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Miku3w3/ClaudeCodeUsage"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
