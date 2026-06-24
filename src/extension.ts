@@ -405,6 +405,7 @@ function updateStatusBar(): void {
       parts.push(currentModel);
     }
     parts.push(`${abbreviateTokens(lastTokens)} ${formatCost(costInDisplayCurrency(lastCost, currency), currency)}`);
+    parts.push(`${t('statusBar.turnAiTime')}${formatThinkTime(turnAiAccumulatorMs)}`);
     parts.push(`${t('statusBar.cumulative')}${abbreviateTokens(totalTokens)} ${formatCost(displayCumulativeCost, currency)}`);
     statusBarItem.text = `$(pulse) ${parts.join(' | ')}`;
   }
@@ -455,6 +456,7 @@ function updateStatusBar(): void {
   md.appendMarkdown(`${t('tooltip.output')}  \n  ${cumulativeOutput.toLocaleString()}\n\n`);
   md.appendMarkdown(`${t('tooltip.cost')}  \n  ${formatCost(displayCumulativeCost, currency)}\n\n`);
   md.appendMarkdown(`${t('tooltip.messages')}  \n  ${messageCount}\n\n`);
+  md.appendMarkdown(`**${t('tooltip.turnAiTime')}**  \n  ${formatThinkTime(turnAiAccumulatorMs)}\n\n`);
 
   // Exchange rate — only show when display currency differs from model's native currency
   const rateTo = currency;

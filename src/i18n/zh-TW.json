@@ -60,5 +60,7 @@
   "panel.aggregate.sessionsCount": "{0} 個會話",
   "panel.aggregate.noSessions": "暫無歷史會話",
   "tooltip.lastModel": "上一條訊息模型",
-  "panel.turnAiTime": "本輪AI耗時"
+  "panel.turnAiTime": "本輪AI耗時",
+  "statusBar.turnAiTime": "AI耗時",
+  "tooltip.turnAiTime": "本輪AI耗時"
 }

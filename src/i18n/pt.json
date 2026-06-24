@@ -59,5 +59,7 @@
   "panel.filter.allSessions": "Todas as sessões",
   "panel.aggregate.sessionsCount": "{0} sessões",
   "panel.aggregate.noSessions": "Nenhuma sessão histórica",
-  "tooltip.lastModel": "Modelo da última mensagem"
+  "tooltip.lastModel": "Modelo da última mensagem",
+  "statusBar.turnAiTime": "Tempo IA",
+  "tooltip.turnAiTime": "Tempo IA do turno"
 }

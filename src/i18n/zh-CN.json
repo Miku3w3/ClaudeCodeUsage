@@ -60,5 +60,7 @@
   "rates.builtin": "内置数据",
   "budget.warningTitle": "费用警告",
   "budget.warningBody": "累计费用已超过 {0}",
-  "panel.turnAiTime": "本轮AI耗时"
+  "panel.turnAiTime": "本轮AI耗时",
+  "statusBar.turnAiTime": "AI耗时",
+  "tooltip.turnAiTime": "本轮AI耗时"
 }

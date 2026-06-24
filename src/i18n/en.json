@@ -60,5 +60,7 @@
   "rates.builtin": "Built-in",
   "budget.warningTitle": "Budget Warning",
   "budget.warningBody": "Cumulative cost exceeded {0}",
-  "panel.turnAiTime": "Turn AI time"
+  "panel.turnAiTime": "Turn AI time",
+  "statusBar.turnAiTime": "AI time",
+  "tooltip.turnAiTime": "Turn AI time"
 }

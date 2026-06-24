@@ -59,5 +59,7 @@
   "panel.filter.allSessions": "Все сессии",
   "panel.aggregate.sessionsCount": "{0} сессий",
   "panel.aggregate.noSessions": "Нет истории сессий",
-  "tooltip.lastModel": "Модель последнего сообщения"
+  "tooltip.lastModel": "Модель последнего сообщения",
+  "statusBar.turnAiTime": "Время ИИ",
+  "tooltip.turnAiTime": "Время ИИ за раунд"
 }
