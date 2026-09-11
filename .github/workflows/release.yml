@@ -1,0 +1,49 @@
+name: Build & Release Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # vsce runs "vscode:prepublish" (= npm run compile: tsc + copy i18n) automatically before packaging.
+      - name: Package .vsix
+        run: |
+          mkdir -p release
+          npx --yes @vscode/vsce@3.9.2 package --out "release/${{ github.ref_name }}.vsix"
+
+      - name: Create GitHub Release and attach .vsix
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: "release/${{ github.ref_name }}.vsix"
+
+      # Marketplace auto-publish: disabled until you add the secret.
+      # Add a Personal Access Token (Marketplace) as GitHub Actions secret
+      # named MARKETPLACE_PUBLISHER_TOKEN, then this step will publish automatically.
+      - name: Publish to Marketplace
+        if: ${{ secrets.MARKETPLACE_PUBLISHER_TOKEN != '' }}
+        env:
+          VSCE_PAT: ${{ secrets.MARKETPLACE_PUBLISHER_TOKEN }}
+        run: npx --yes @vscode/vsce@3.9.2 publish --packagePath "release/${{ github.ref_name }}.vsix"

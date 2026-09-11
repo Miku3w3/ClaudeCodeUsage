@@ -75,7 +75,20 @@
         "claudeTokenMonitor.language": {
           "type": "string",
           "default": "auto",
-          "enum": ["auto", "en", "zh-CN", "zh-TW", "ja", "ko", "es", "ar", "pt", "de", "fr", "ru"],
+          "enum": [
+            "auto",
+            "en",
+            "zh-CN",
+            "zh-TW",
+            "ja",
+            "ko",
+            "es",
+            "ar",
+            "pt",
+            "de",
+            "fr",
+            "ru"
+          ],
           "enumDescriptions": [
             "Follow VSCode display language",
             "English",
@@ -95,7 +108,15 @@
         "claudeTokenMonitor.currency": {
           "type": "string",
           "default": "auto",
-          "enum": ["auto", "CNY", "USD", "EUR", "JPY", "KRW", "GBP"],
+          "enum": [
+            "auto",
+            "CNY",
+            "USD",
+            "EUR",
+            "JPY",
+            "KRW",
+            "GBP"
+          ],
           "enumDescriptions": [
             "Auto-detect from language",
             "Chinese Yuan (¥)",
@@ -185,11 +206,14 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./ && node copy-i18n.js",
     "watch": "tsc -watch -p ./",
-    "lint": "echo 'No linter configured'"
+    "lint": "echo 'No linter configured'",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.9.2",
     "typescript": "^5.5.0"
   }
 }
